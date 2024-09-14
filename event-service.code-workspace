@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "proto"
+		},
+		{
+			"path": "server"
+		},
+		{
+			"path": "client"
+		}
+	],
+	"settings": {}
+}
