@@ -22,7 +22,7 @@ func main() {
 	eventService := services.NewEventService(eventClient)
 
 	// err = eventService.CreateEvent("Test3", "this is the second test", "when", "where", 99, 1, "club_id string", "ping")
-	err = eventService.GetEvent("66e5df38d30fd5c1bf9fb829")
+	err = eventService.GetEvent("66e5e08cd30fd5c1bf9fb82b")
 	// err = eventService.DeleteEvent("66e5df38d30fd5c1bf9fb829")
 	// err = eventService.UpdateEvent("66e5dff1d30fd5c1bf9fb82a", "Test2", "this is the first test, no it is updated!", "when", "where", 99, 1, "club_id string")
 	// err = eventService.ListEvents()

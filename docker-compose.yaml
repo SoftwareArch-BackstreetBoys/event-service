@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: event-service-client
+    depends_on:
+      - server
+    ports:
+      - "8080:8080"
+    # Optionally, set environment variables or volumes if needed
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: event-service-server
+    ports:
+      - "50051:50051"
+    # Optionally, set environment variables or volumes if needed
