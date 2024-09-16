@@ -6,11 +6,11 @@ import (
 )
 
 type EventService interface {
-	CreateEvent(title string, description string, datetime string, location string, max_participation int64, cur_participation int64, club_id string, created_by string) error
+	CreateEvent(title string, description string, datetime string, location string, max_participation int64, club_id string, created_by string) error
 	GetEvent(id string) error
-	UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64, cur_participation int64, club_id string) error
+	UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64, club_id string) error
 	DeleteEvent(id string) error
-	ListEvents() error
+	GetAllEvents() error
 	JoinEvent(event_id string, user_id string) error
 	LeaveEvent(event_id string, user_id string) error
 }
@@ -23,14 +23,13 @@ func NewEventService(eventServiceClient EventServiceClient) EventService {
 	return eventService{eventServiceClient}
 }
 
-func (base eventService) CreateEvent(title string, description string, datetime string, location string, max_participation int64, cur_participation int64, club_id string, created_by string) error {
+func (base eventService) CreateEvent(title string, description string, datetime string, location string, max_participation int64, club_id string, created_by string) error {
 	req := CreateEventRequest{
 		Title:            title,
 		Description:      description,
 		Datetime:         datetime,
 		Location:         location,
 		MaxParticipation: max_participation,
-		CurParticipation: cur_participation,
 		ClubId:           club_id,
 		CreatedBy:        created_by,
 	}
@@ -60,14 +59,13 @@ func (base eventService) GetEvent(id string) error {
 	return nil
 }
 
-func (base eventService) UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64, cur_participation int64, club_id string) error {
+func (base eventService) UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64, club_id string) error {
 	req := UpdateEventRequest{
 		Id:               id,
 		Description:      description,
 		Datetime:         datetime,
 		Location:         location,
 		MaxParticipation: max_participation,
-		CurParticipation: cur_participation,
 		ClubId:           club_id,
 	}
 
@@ -96,15 +94,15 @@ func (base eventService) DeleteEvent(id string) error {
 	return nil
 }
 
-func (base eventService) ListEvents() error {
-	req := ListEventsRequest{}
+func (base eventService) GetAllEvents() error {
+	req := GetAllEventsRequest{}
 
-	res, err := base.eventServiceClient.ListEvents(context.Background(), &req)
+	res, err := base.eventServiceClient.GetAllEvents(context.Background(), &req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Service: ListEvents\n")
+	fmt.Printf("Service: GetAllEvents\n")
 	fmt.Printf("Response: %v\n", res)
 	return nil
 }

@@ -12,7 +12,7 @@ service EventService {
     rpc GetEvent (GetEventRequest) returns (GetEventResponse);
     rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse);
     rpc DeleteEvent (DeleteEventRequest) returns (DeleteEventResponse);
-    rpc ListEvents (ListEventsRequest) returns (ListEventsResponse);
+    rpc GetAllEvents (GetAllEventsRequest) returns (GetAllEventsResponse);
     rpc JoinEvent (JoinEventRequest) returns (JoinEventResponse);
     rpc LeaveEvent (LeaveEventRequest) returns (LeaveEventResponse);
 }
@@ -62,9 +62,9 @@ message DeleteEventResponse {
     bool success = 1;
 }
 
-message ListEventsRequest {}
+message GetAllEventsRequest {}
 
-message ListEventsResponse {
+message GetAllEventsResponse {
     repeated Event events = 1;
 }
 

@@ -169,8 +169,8 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 	return &DeleteEventResponse{Success: true}, nil
 }
 
-// ListEvents retrieves all events from MongoDB
-func (eventServiceServer) ListEvents(ctx context.Context, req *ListEventsRequest) (*ListEventsResponse, error) {
+// GetAllEvents retrieves all events from MongoDB
+func (eventServiceServer) GetAllEvents(ctx context.Context, req *GetAllEventsRequest) (*GetAllEventsResponse, error) {
 	// Find all events in the collection
 	cur, err := eventCollection.Find(ctx, bson.M{})
 	if err != nil {
@@ -199,7 +199,7 @@ func (eventServiceServer) ListEvents(ctx context.Context, req *ListEventsRequest
 		})
 	}
 
-	return &ListEventsResponse{Events: events}, nil
+	return &GetAllEventsResponse{Events: events}, nil
 }
 
 // JoinEvent adds a user to an event and increments participation count
