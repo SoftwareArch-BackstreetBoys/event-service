@@ -8,16 +8,27 @@ option go_package = "./services";
 
 // The service definition
 service EventService {
+    rpc GetAllEvents (GetAllEventsRequest) returns (GetAllEventsResponse);
     rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse);
     rpc GetEvent (GetEventRequest) returns (GetEventResponse);
+    rpc GetAllEventsByUser (GetAllEventsByUserRequest) returns (GetAllEventsByUserResponse);
+    rpc GetAllEventsByClub (GetAllEventsByClubRequest) returns (GetAllEventsByClubResponse);
     rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse);
     rpc DeleteEvent (DeleteEventRequest) returns (DeleteEventResponse);
-    rpc GetAllEvents (GetAllEventsRequest) returns (GetAllEventsResponse);
+    rpc GetAllParticipatedEvents (GetAllParticipatedEventsRequest) returns (GetAllParticipatedEventsResponse);
     rpc JoinEvent (JoinEventRequest) returns (JoinEventResponse);
     rpc LeaveEvent (LeaveEventRequest) returns (LeaveEventResponse);
+    rpc SearchEvents (SearchEventsRequest) returns (SearchEventsResponse);
 }
 
 // Message definitions
+
+message GetAllEventsRequest {}
+
+message GetAllEventsResponse {
+    repeated Event events = 1;
+}
+
 message CreateEventRequest {
     string title = 1;
     string description = 2;
@@ -38,6 +49,26 @@ message GetEventRequest {
 
 message GetEventResponse {
     Event event = 1;
+}
+
+// GetAllEventsByUserRequest is the request message for GetAllEventsByUser.
+message GetAllEventsByUserRequest {
+    string user_id = 1; // User ID to filter events
+}
+
+// GetAllEventsByUserResponse is the response message for GetAllEventsByUser.
+message GetAllEventsByUserResponse {
+    repeated Event events = 1; // List of events created by the specified user
+}
+
+// GetAllEventsByClubRequest is the request message for GetAllEventsByClub.
+message GetAllEventsByClubRequest {
+    string club_id = 1; // Club ID to filter events
+}
+
+// GetAllEventsByClubResponse is the response message for GetAllEventsByClub.
+message GetAllEventsByClubResponse {
+    repeated Event events = 1; // List of events associated with the specified club
 }
 
 message UpdateEventRequest {
@@ -62,11 +93,16 @@ message DeleteEventResponse {
     bool success = 1;
 }
 
-message GetAllEventsRequest {}
-
-message GetAllEventsResponse {
-    repeated Event events = 1;
+// GetAllParticipatedEventsRequest is the request message for GetAllParticipatedEvents.
+message GetAllParticipatedEventsRequest {
+    string user_id = 1; // User ID to filter participated events
 }
+
+// GetAllParticipatedEventsResponse is the response message for GetAllParticipatedEvents.
+message GetAllParticipatedEventsResponse {
+    repeated Event events = 1; // List of events the user has participated in
+}
+
 
 message JoinEventRequest {
     string event_id = 1;
@@ -84,6 +120,17 @@ message LeaveEventRequest {
 
 message LeaveEventResponse {
     bool success = 1;
+}
+
+// SearchEventsRequest is the request message for SearchEvents.
+message SearchEventsRequest {
+    string search_query = 1; // Query to search in title and description
+    string club_id = 2; // Optional club ID to filter events by club
+}
+
+// SearchEventsResponse is the response message for SearchEvents.
+message SearchEventsResponse {
+    repeated Event events = 1; // List of events matching the search criteria
 }
 
 message Event {

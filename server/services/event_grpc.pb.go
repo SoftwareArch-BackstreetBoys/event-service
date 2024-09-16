@@ -19,13 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EventService_CreateEvent_FullMethodName  = "/services.EventService/CreateEvent"
-	EventService_GetEvent_FullMethodName     = "/services.EventService/GetEvent"
-	EventService_UpdateEvent_FullMethodName  = "/services.EventService/UpdateEvent"
-	EventService_DeleteEvent_FullMethodName  = "/services.EventService/DeleteEvent"
-	EventService_GetAllEvents_FullMethodName = "/services.EventService/GetAllEvents"
-	EventService_JoinEvent_FullMethodName    = "/services.EventService/JoinEvent"
-	EventService_LeaveEvent_FullMethodName   = "/services.EventService/LeaveEvent"
+	EventService_GetAllEvents_FullMethodName             = "/services.EventService/GetAllEvents"
+	EventService_CreateEvent_FullMethodName              = "/services.EventService/CreateEvent"
+	EventService_GetEvent_FullMethodName                 = "/services.EventService/GetEvent"
+	EventService_GetAllEventsByUser_FullMethodName       = "/services.EventService/GetAllEventsByUser"
+	EventService_GetAllEventsByClub_FullMethodName       = "/services.EventService/GetAllEventsByClub"
+	EventService_UpdateEvent_FullMethodName              = "/services.EventService/UpdateEvent"
+	EventService_DeleteEvent_FullMethodName              = "/services.EventService/DeleteEvent"
+	EventService_GetAllParticipatedEvents_FullMethodName = "/services.EventService/GetAllParticipatedEvents"
+	EventService_JoinEvent_FullMethodName                = "/services.EventService/JoinEvent"
+	EventService_LeaveEvent_FullMethodName               = "/services.EventService/LeaveEvent"
+	EventService_SearchEvents_FullMethodName             = "/services.EventService/SearchEvents"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -34,13 +38,17 @@ const (
 //
 // The service definition
 type EventServiceClient interface {
+	GetAllEvents(ctx context.Context, in *GetAllEventsRequest, opts ...grpc.CallOption) (*GetAllEventsResponse, error)
 	CreateEvent(ctx context.Context, in *CreateEventRequest, opts ...grpc.CallOption) (*CreateEventResponse, error)
 	GetEvent(ctx context.Context, in *GetEventRequest, opts ...grpc.CallOption) (*GetEventResponse, error)
+	GetAllEventsByUser(ctx context.Context, in *GetAllEventsByUserRequest, opts ...grpc.CallOption) (*GetAllEventsByUserResponse, error)
+	GetAllEventsByClub(ctx context.Context, in *GetAllEventsByClubRequest, opts ...grpc.CallOption) (*GetAllEventsByClubResponse, error)
 	UpdateEvent(ctx context.Context, in *UpdateEventRequest, opts ...grpc.CallOption) (*UpdateEventResponse, error)
 	DeleteEvent(ctx context.Context, in *DeleteEventRequest, opts ...grpc.CallOption) (*DeleteEventResponse, error)
-	GetAllEvents(ctx context.Context, in *GetAllEventsRequest, opts ...grpc.CallOption) (*GetAllEventsResponse, error)
+	GetAllParticipatedEvents(ctx context.Context, in *GetAllParticipatedEventsRequest, opts ...grpc.CallOption) (*GetAllParticipatedEventsResponse, error)
 	JoinEvent(ctx context.Context, in *JoinEventRequest, opts ...grpc.CallOption) (*JoinEventResponse, error)
 	LeaveEvent(ctx context.Context, in *LeaveEventRequest, opts ...grpc.CallOption) (*LeaveEventResponse, error)
+	SearchEvents(ctx context.Context, in *SearchEventsRequest, opts ...grpc.CallOption) (*SearchEventsResponse, error)
 }
 
 type eventServiceClient struct {
@@ -49,6 +57,16 @@ type eventServiceClient struct {
 
 func NewEventServiceClient(cc grpc.ClientConnInterface) EventServiceClient {
 	return &eventServiceClient{cc}
+}
+
+func (c *eventServiceClient) GetAllEvents(ctx context.Context, in *GetAllEventsRequest, opts ...grpc.CallOption) (*GetAllEventsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAllEventsResponse)
+	err := c.cc.Invoke(ctx, EventService_GetAllEvents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *eventServiceClient) CreateEvent(ctx context.Context, in *CreateEventRequest, opts ...grpc.CallOption) (*CreateEventResponse, error) {
@@ -65,6 +83,26 @@ func (c *eventServiceClient) GetEvent(ctx context.Context, in *GetEventRequest, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetEventResponse)
 	err := c.cc.Invoke(ctx, EventService_GetEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventServiceClient) GetAllEventsByUser(ctx context.Context, in *GetAllEventsByUserRequest, opts ...grpc.CallOption) (*GetAllEventsByUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAllEventsByUserResponse)
+	err := c.cc.Invoke(ctx, EventService_GetAllEventsByUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventServiceClient) GetAllEventsByClub(ctx context.Context, in *GetAllEventsByClubRequest, opts ...grpc.CallOption) (*GetAllEventsByClubResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAllEventsByClubResponse)
+	err := c.cc.Invoke(ctx, EventService_GetAllEventsByClub_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +129,10 @@ func (c *eventServiceClient) DeleteEvent(ctx context.Context, in *DeleteEventReq
 	return out, nil
 }
 
-func (c *eventServiceClient) GetAllEvents(ctx context.Context, in *GetAllEventsRequest, opts ...grpc.CallOption) (*GetAllEventsResponse, error) {
+func (c *eventServiceClient) GetAllParticipatedEvents(ctx context.Context, in *GetAllParticipatedEventsRequest, opts ...grpc.CallOption) (*GetAllParticipatedEventsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAllEventsResponse)
-	err := c.cc.Invoke(ctx, EventService_GetAllEvents_FullMethodName, in, out, cOpts...)
+	out := new(GetAllParticipatedEventsResponse)
+	err := c.cc.Invoke(ctx, EventService_GetAllParticipatedEvents_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -121,19 +159,33 @@ func (c *eventServiceClient) LeaveEvent(ctx context.Context, in *LeaveEventReque
 	return out, nil
 }
 
+func (c *eventServiceClient) SearchEvents(ctx context.Context, in *SearchEventsRequest, opts ...grpc.CallOption) (*SearchEventsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchEventsResponse)
+	err := c.cc.Invoke(ctx, EventService_SearchEvents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EventServiceServer is the server API for EventService service.
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility.
 //
 // The service definition
 type EventServiceServer interface {
+	GetAllEvents(context.Context, *GetAllEventsRequest) (*GetAllEventsResponse, error)
 	CreateEvent(context.Context, *CreateEventRequest) (*CreateEventResponse, error)
 	GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error)
+	GetAllEventsByUser(context.Context, *GetAllEventsByUserRequest) (*GetAllEventsByUserResponse, error)
+	GetAllEventsByClub(context.Context, *GetAllEventsByClubRequest) (*GetAllEventsByClubResponse, error)
 	UpdateEvent(context.Context, *UpdateEventRequest) (*UpdateEventResponse, error)
 	DeleteEvent(context.Context, *DeleteEventRequest) (*DeleteEventResponse, error)
-	GetAllEvents(context.Context, *GetAllEventsRequest) (*GetAllEventsResponse, error)
+	GetAllParticipatedEvents(context.Context, *GetAllParticipatedEventsRequest) (*GetAllParticipatedEventsResponse, error)
 	JoinEvent(context.Context, *JoinEventRequest) (*JoinEventResponse, error)
 	LeaveEvent(context.Context, *LeaveEventRequest) (*LeaveEventResponse, error)
+	SearchEvents(context.Context, *SearchEventsRequest) (*SearchEventsResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -144,11 +196,20 @@ type EventServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedEventServiceServer struct{}
 
+func (UnimplementedEventServiceServer) GetAllEvents(context.Context, *GetAllEventsRequest) (*GetAllEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllEvents not implemented")
+}
 func (UnimplementedEventServiceServer) CreateEvent(context.Context, *CreateEventRequest) (*CreateEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateEvent not implemented")
 }
 func (UnimplementedEventServiceServer) GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvent not implemented")
+}
+func (UnimplementedEventServiceServer) GetAllEventsByUser(context.Context, *GetAllEventsByUserRequest) (*GetAllEventsByUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllEventsByUser not implemented")
+}
+func (UnimplementedEventServiceServer) GetAllEventsByClub(context.Context, *GetAllEventsByClubRequest) (*GetAllEventsByClubResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllEventsByClub not implemented")
 }
 func (UnimplementedEventServiceServer) UpdateEvent(context.Context, *UpdateEventRequest) (*UpdateEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateEvent not implemented")
@@ -156,14 +217,17 @@ func (UnimplementedEventServiceServer) UpdateEvent(context.Context, *UpdateEvent
 func (UnimplementedEventServiceServer) DeleteEvent(context.Context, *DeleteEventRequest) (*DeleteEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteEvent not implemented")
 }
-func (UnimplementedEventServiceServer) GetAllEvents(context.Context, *GetAllEventsRequest) (*GetAllEventsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllEvents not implemented")
+func (UnimplementedEventServiceServer) GetAllParticipatedEvents(context.Context, *GetAllParticipatedEventsRequest) (*GetAllParticipatedEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllParticipatedEvents not implemented")
 }
 func (UnimplementedEventServiceServer) JoinEvent(context.Context, *JoinEventRequest) (*JoinEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinEvent not implemented")
 }
 func (UnimplementedEventServiceServer) LeaveEvent(context.Context, *LeaveEventRequest) (*LeaveEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LeaveEvent not implemented")
+}
+func (UnimplementedEventServiceServer) SearchEvents(context.Context, *SearchEventsRequest) (*SearchEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchEvents not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 func (UnimplementedEventServiceServer) testEmbeddedByValue()                      {}
@@ -184,6 +248,24 @@ func RegisterEventServiceServer(s grpc.ServiceRegistrar, srv EventServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&EventService_ServiceDesc, srv)
+}
+
+func _EventService_GetAllEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).GetAllEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_GetAllEvents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).GetAllEvents(ctx, req.(*GetAllEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _EventService_CreateEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -218,6 +300,42 @@ func _EventService_GetEvent_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EventServiceServer).GetEvent(ctx, req.(*GetEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventService_GetAllEventsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllEventsByUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).GetAllEventsByUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_GetAllEventsByUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).GetAllEventsByUser(ctx, req.(*GetAllEventsByUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventService_GetAllEventsByClub_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllEventsByClubRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).GetAllEventsByClub(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_GetAllEventsByClub_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).GetAllEventsByClub(ctx, req.(*GetAllEventsByClubRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -258,20 +376,20 @@ func _EventService_DeleteEvent_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventService_GetAllEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllEventsRequest)
+func _EventService_GetAllParticipatedEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllParticipatedEventsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventServiceServer).GetAllEvents(ctx, in)
+		return srv.(EventServiceServer).GetAllParticipatedEvents(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: EventService_GetAllEvents_FullMethodName,
+		FullMethod: EventService_GetAllParticipatedEvents_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventServiceServer).GetAllEvents(ctx, req.(*GetAllEventsRequest))
+		return srv.(EventServiceServer).GetAllParticipatedEvents(ctx, req.(*GetAllParticipatedEventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -312,6 +430,24 @@ func _EventService_LeaveEvent_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventService_SearchEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).SearchEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_SearchEvents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).SearchEvents(ctx, req.(*SearchEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -320,12 +456,24 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*EventServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "GetAllEvents",
+			Handler:    _EventService_GetAllEvents_Handler,
+		},
+		{
 			MethodName: "CreateEvent",
 			Handler:    _EventService_CreateEvent_Handler,
 		},
 		{
 			MethodName: "GetEvent",
 			Handler:    _EventService_GetEvent_Handler,
+		},
+		{
+			MethodName: "GetAllEventsByUser",
+			Handler:    _EventService_GetAllEventsByUser_Handler,
+		},
+		{
+			MethodName: "GetAllEventsByClub",
+			Handler:    _EventService_GetAllEventsByClub_Handler,
 		},
 		{
 			MethodName: "UpdateEvent",
@@ -336,8 +484,8 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EventService_DeleteEvent_Handler,
 		},
 		{
-			MethodName: "GetAllEvents",
-			Handler:    _EventService_GetAllEvents_Handler,
+			MethodName: "GetAllParticipatedEvents",
+			Handler:    _EventService_GetAllParticipatedEvents_Handler,
 		},
 		{
 			MethodName: "JoinEvent",
@@ -346,6 +494,10 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LeaveEvent",
 			Handler:    _EventService_LeaveEvent_Handler,
+		},
+		{
+			MethodName: "SearchEvents",
+			Handler:    _EventService_SearchEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

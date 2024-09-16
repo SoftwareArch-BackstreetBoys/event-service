@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -25,6 +26,49 @@ var eventCollection *mongo.Collection = configs.GetCollection(configs.DB, "event
 var eventParticipationCollection *mongo.Collection = configs.GetCollection(configs.DB, "event_participation")
 
 func (eventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
+
+// GetAllEvents retrieves all events from MongoDB, sorted by created_at in descending order
+func (eventServiceServer) GetAllEvents(ctx context.Context, req *GetAllEventsRequest) (*GetAllEventsResponse, error) {
+	// Define sorting options to sort by created_at in descending order
+	findOptions := options.Find().SetSort(bson.M{"created_at": -1})
+
+	// Find all events in the collection with sorting
+	cur, err := eventCollection.Find(ctx, bson.M{}, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Parse the results into a slice of Event
+	var events []*Event
+	for cur.Next(ctx) {
+		var event models.MongoEvent
+		if err := cur.Decode(&event); err != nil {
+			return nil, err
+		}
+
+		events = append(events, &Event{
+			Id:               event.Id.Hex(),
+			Title:            event.Title,
+			Description:      event.Description,
+			Datetime:         event.Datetime,
+			Location:         event.Location,
+			MaxParticipation: event.MaxParticipation,
+			CurParticipation: event.CurParticipation,
+			ClubId:           event.ClubId,
+			CreatedBy:        event.CreatedBy,
+			CreatedAt:        timestamppb.New(event.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
+			UpdatedAt:        timestamppb.New(event.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
+		})
+	}
+
+	// Check for errors that occurred during iteration
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return &GetAllEventsResponse{Events: events}, nil
+}
 
 // CreateEvent inserts a new event into MongoDB
 func (eventServiceServer) CreateEvent(ctx context.Context, req *CreateEventRequest) (*CreateEventResponse, error) {
@@ -72,10 +116,6 @@ func (s eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) 
 		return nil, err
 	}
 
-	// Convert created_at and updated_at to protobuf Timestamp
-	createdAtProto := timestamppb.New(event.CreatedAt)
-	updatedAtProto := timestamppb.New(event.UpdatedAt)
-
 	// Return the event in the GetEventResponse
 	return &GetEventResponse{
 		Event: &Event{
@@ -88,10 +128,100 @@ func (s eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) 
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
 			CreatedBy:        event.CreatedBy,
-			CreatedAt:        createdAtProto,
-			UpdatedAt:        updatedAtProto,
+			CreatedAt:        timestamppb.New(event.CreatedAt),
+			UpdatedAt:        timestamppb.New(event.UpdatedAt),
 		},
 	}, nil
+}
+
+// GetAllEventsByUser retrieves all events created by a specific user
+func (eventServiceServer) GetAllEventsByUser(ctx context.Context, req *GetAllEventsByUserRequest) (*GetAllEventsByUserResponse, error) {
+	// Define filter to find events created by the specified user
+	filter := bson.M{"created_by": req.UserId}
+
+	// Define sorting options to sort by created_at in descending order
+	findOptions := options.Find().SetSort(bson.M{"created_at": -1})
+
+	// Find all events in the collection for the specified user with sorting
+	cur, err := eventCollection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Parse the results into a slice of Event
+	var events []*Event
+	for cur.Next(ctx) {
+		var event models.MongoEvent
+		if err := cur.Decode(&event); err != nil {
+			return nil, err
+		}
+
+		events = append(events, &Event{
+			Id:               event.Id.Hex(),
+			Title:            event.Title,
+			Description:      event.Description,
+			Datetime:         event.Datetime,
+			Location:         event.Location,
+			MaxParticipation: event.MaxParticipation,
+			CurParticipation: event.CurParticipation,
+			ClubId:           event.ClubId,
+			CreatedBy:        event.CreatedBy,
+			CreatedAt:        timestamppb.New(event.CreatedAt),
+			UpdatedAt:        timestamppb.New(event.UpdatedAt),
+		})
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return &GetAllEventsByUserResponse{Events: events}, nil
+}
+
+// GetAllEventsByClub retrieves all events associated with a specific club
+func (eventServiceServer) GetAllEventsByClub(ctx context.Context, req *GetAllEventsByClubRequest) (*GetAllEventsByClubResponse, error) {
+	// Define filter to find events associated with the specified club
+	filter := bson.M{"club_id": req.ClubId}
+
+	// Define sorting options to sort by created_at in descending order
+	findOptions := options.Find().SetSort(bson.M{"created_at": -1})
+
+	// Find all events in the collection for the specified club with sorting
+	cur, err := eventCollection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Parse the results into a slice of Event
+	var events []*Event
+	for cur.Next(ctx) {
+		var event models.MongoEvent
+		if err := cur.Decode(&event); err != nil {
+			return nil, err
+		}
+
+		events = append(events, &Event{
+			Id:               event.Id.Hex(),
+			Title:            event.Title,
+			Description:      event.Description,
+			Datetime:         event.Datetime,
+			Location:         event.Location,
+			MaxParticipation: event.MaxParticipation,
+			CurParticipation: event.CurParticipation,
+			ClubId:           event.ClubId,
+			CreatedBy:        event.CreatedBy,
+			CreatedAt:        timestamppb.New(event.CreatedAt),
+			UpdatedAt:        timestamppb.New(event.UpdatedAt),
+		})
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return &GetAllEventsByClubResponse{Events: events}, nil
 }
 
 // UpdateEvent updates an event's information in MongoDB and returns the updated event
@@ -169,20 +299,43 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 	return &DeleteEventResponse{Success: true}, nil
 }
 
-// GetAllEvents retrieves all events from MongoDB
-func (eventServiceServer) GetAllEvents(ctx context.Context, req *GetAllEventsRequest) (*GetAllEventsResponse, error) {
-	// Find all events in the collection
-	cur, err := eventCollection.Find(ctx, bson.M{})
+// GetAllParticipatedEvents retrieves events where the user is a participant
+func (eventServiceServer) GetAllParticipatedEvents(ctx context.Context, req *GetAllParticipatedEventsRequest) (*GetAllParticipatedEventsResponse, error) {
+	// Convert user ID from string to ObjectID
+	userID, err := primitive.ObjectIDFromHex(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find all events where the user is a participant
+	cur, err := eventParticipationCollection.Find(ctx, bson.M{"user_id": userID})
 	if err != nil {
 		return nil, err
 	}
 	defer cur.Close(ctx)
 
+	// Extract event IDs from the participation documents
+	var eventIDs []primitive.ObjectID
+	for cur.Next(ctx) {
+		var participation models.MongoEventParticipation
+		if err := cur.Decode(&participation); err != nil {
+			return nil, err
+		}
+		eventIDs = append(eventIDs, participation.EventId)
+	}
+
+	// Find the details of the events
+	eventCur, err := eventCollection.Find(ctx, bson.M{"_id": bson.M{"$in": eventIDs}})
+	if err != nil {
+		return nil, err
+	}
+	defer eventCur.Close(ctx)
+
 	// Parse the results into a slice of Event
 	var events []*Event
-	for cur.Next(ctx) {
+	for eventCur.Next(ctx) {
 		var event models.MongoEvent
-		if err := cur.Decode(&event); err != nil {
+		if err := eventCur.Decode(&event); err != nil {
 			return nil, err
 		}
 
@@ -196,10 +349,12 @@ func (eventServiceServer) GetAllEvents(ctx context.Context, req *GetAllEventsReq
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
 			CreatedBy:        event.CreatedBy,
+			CreatedAt:        timestamppb.New(event.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
+			UpdatedAt:        timestamppb.New(event.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
 		})
 	}
 
-	return &GetAllEventsResponse{Events: events}, nil
+	return &GetAllParticipatedEventsResponse{Events: events}, nil
 }
 
 // JoinEvent adds a user to an event and increments participation count
@@ -286,4 +441,62 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 	}
 
 	return &LeaveEventResponse{Success: true}, nil
+}
+
+// SearchEvents searches for events by title and description, with an optional filter by club ID
+func (eventServiceServer) SearchEvents(ctx context.Context, req *SearchEventsRequest) (*SearchEventsResponse, error) {
+	// Define the search query
+	searchQuery := req.SearchQuery
+
+	// Build the search filter
+	filter := bson.M{
+		"$or": []bson.M{
+			{"title": bson.M{"$regex": searchQuery, "$options": "i"}},
+			{"description": bson.M{"$regex": searchQuery, "$options": "i"}},
+		},
+	}
+
+	// Apply the optional club_id filter if provided
+	if req.ClubId != "" {
+		filter["club_id"] = req.ClubId
+	}
+
+	// Define sorting options to sort by created_at in descending order
+	findOptions := options.Find().SetSort(bson.M{"created_at": -1})
+
+	// Find all events matching the search criteria with sorting
+	cur, err := eventCollection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Parse the results into a slice of Event
+	var events []*Event
+	for cur.Next(ctx) {
+		var event models.MongoEvent
+		if err := cur.Decode(&event); err != nil {
+			return nil, err
+		}
+
+		events = append(events, &Event{
+			Id:               event.Id.Hex(),
+			Title:            event.Title,
+			Description:      event.Description,
+			Datetime:         event.Datetime,
+			Location:         event.Location,
+			MaxParticipation: event.MaxParticipation,
+			CurParticipation: event.CurParticipation,
+			ClubId:           event.ClubId,
+			CreatedBy:        event.CreatedBy,
+			CreatedAt:        timestamppb.New(event.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
+			UpdatedAt:        timestamppb.New(event.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
+		})
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return &SearchEventsResponse{Events: events}, nil
 }
