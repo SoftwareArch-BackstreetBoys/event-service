@@ -120,6 +120,12 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		return &DeleteEventResponse{Success: false}, err
 	}
 
+	// Delete all related event participations from the eventParticipationCollection
+	_, err = eventParticipationCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
+	if err != nil {
+		return &DeleteEventResponse{Success: false}, err
+	}
+
 	return &DeleteEventResponse{Success: true}, nil
 }
 
