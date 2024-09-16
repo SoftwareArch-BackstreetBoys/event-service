@@ -1,6 +1,10 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // Event represents the event data stored in MongoDB
 type MongoEvent struct {
@@ -13,4 +17,6 @@ type MongoEvent struct {
 	CurParticipation int64              `bson:"cur_participation"` // Current number of participants
 	ClubId           string             `bson:"club_id"`           // Club ID associated with the event
 	CreatedBy        string             `bson:"created_by"`        // User ID of the event creator
+	CreatedAt        time.Time          `bson:"created_at"`        // Timestamp when the event was created
+	UpdatedAt        time.Time          `bson:"updated_at"`        // Timestamp when the event was last updated
 }

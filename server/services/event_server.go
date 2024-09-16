@@ -5,10 +5,12 @@ import (
 	"log"
 	"server/configs"
 	"server/models"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type eventServiceServer struct {
@@ -26,6 +28,9 @@ func (eventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 
 // CreateEvent inserts a new event into MongoDB
 func (eventServiceServer) CreateEvent(ctx context.Context, req *CreateEventRequest) (*CreateEventResponse, error) {
+	// Set the current time for created_at and updated_at fields
+	currentTime := time.Now()
+
 	event := models.MongoEvent{
 		Title:            req.Title,
 		Description:      req.Description,
@@ -35,20 +40,25 @@ func (eventServiceServer) CreateEvent(ctx context.Context, req *CreateEventReque
 		CurParticipation: 0,
 		ClubId:           req.ClubId,
 		CreatedBy:        req.CreatedBy,
+		CreatedAt:        currentTime,
+		UpdatedAt:        currentTime,
 	}
 
 	// Insert the event into the MongoDB collection
-	_, err := eventCollection.InsertOne(ctx, event)
+	result, err := eventCollection.InsertOne(ctx, event)
 	if err != nil {
 		log.Println("Failed to create event:", err)
-		return &CreateEventResponse{Success: false}, err
+		return nil, err
 	}
 
-	return &CreateEventResponse{Success: true}, nil
+	// Convert the inserted ID to string
+	insertedID := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return &CreateEventResponse{Id: insertedID}, nil
 }
 
 // GetEvent retrieves an event from MongoDB by its _id
-func (eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) (*GetEventResponse, error) {
+func (s eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) (*GetEventResponse, error) {
 	// Convert event ID from string to ObjectID
 	eventID, err := primitive.ObjectIDFromHex(req.Id)
 	if err != nil {
@@ -62,6 +72,10 @@ func (eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) (*
 		return nil, err
 	}
 
+	// Convert created_at and updated_at to protobuf Timestamp
+	createdAtProto := timestamppb.New(event.CreatedAt)
+	updatedAtProto := timestamppb.New(event.UpdatedAt)
+
 	// Return the event in the GetEventResponse
 	return &GetEventResponse{
 		Event: &Event{
@@ -74,11 +88,13 @@ func (eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) (*
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
 			CreatedBy:        event.CreatedBy,
+			CreatedAt:        createdAtProto,
+			UpdatedAt:        updatedAtProto,
 		},
 	}, nil
 }
 
-// UpdateEvent updates an event's information in MongoDB
+// UpdateEvent updates an event's information in MongoDB and returns the updated event
 func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventRequest) (*UpdateEventResponse, error) {
 	// Convert event ID from string to ObjectID
 	eventID, err := primitive.ObjectIDFromHex(req.Id)
@@ -94,16 +110,40 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 			"datetime":          req.Datetime,
 			"location":          req.Location,
 			"max_participation": req.MaxParticipation,
+			"updated_at":        time.Now(), // Update the timestamp
 		},
 	}
 
 	// Update the event in the MongoDB collection
 	_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": eventID}, update)
 	if err != nil {
-		return &UpdateEventResponse{Success: false}, err
+		log.Println("Failed to update event:", err)
+		return nil, err
 	}
 
-	return &UpdateEventResponse{Success: true}, nil
+	// Retrieve the updated event
+	var updatedEvent models.MongoEvent
+	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&updatedEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the updated event in the UpdateEventResponse
+	return &UpdateEventResponse{
+		Event: &Event{
+			Id:               updatedEvent.Id.Hex(),
+			Title:            updatedEvent.Title,
+			Description:      updatedEvent.Description,
+			Datetime:         updatedEvent.Datetime,
+			Location:         updatedEvent.Location,
+			MaxParticipation: updatedEvent.MaxParticipation,
+			CurParticipation: updatedEvent.CurParticipation,
+			ClubId:           updatedEvent.ClubId,
+			CreatedBy:        updatedEvent.CreatedBy,
+			CreatedAt:        timestamppb.New(updatedEvent.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
+			UpdatedAt:        timestamppb.New(updatedEvent.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
+		},
+	}, nil
 }
 
 // DeleteEvent removes an event from MongoDB by its ID

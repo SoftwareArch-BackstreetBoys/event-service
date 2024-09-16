@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package services;
 
 option go_package = "./services";
@@ -22,13 +24,12 @@ message CreateEventRequest {
     string datetime = 3;
     string location = 4;
     int64 max_participation = 5;
-    int64 cur_participation = 6;
-    string club_id = 7;
-    string created_by = 8;
+    string club_id = 6;
+    string created_by = 7;
 }
 
 message CreateEventResponse {
-    bool success = 1;
+    string id = 1;
 }
 
 message GetEventRequest {
@@ -46,12 +47,11 @@ message UpdateEventRequest {
     string datetime = 4;
     string location = 5;
     int64 max_participation = 6;
-    int64 cur_participation = 7;
-    string club_id = 8;
+    string club_id = 7;
 }
 
 message UpdateEventResponse {
-    bool success = 1;
+    Event event = 1;
 }
 
 message DeleteEventRequest {
@@ -96,4 +96,6 @@ message Event {
     int64 cur_participation = 7;
     string club_id = 8;
     string created_by = 9;
+    google.protobuf.Timestamp created_at = 10;
+    google.protobuf.Timestamp updated_at = 11;
 }
