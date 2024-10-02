@@ -1,45 +1,30 @@
-# Use a Go base image
+# Use the Golang image as the builder
 FROM golang:1.23 AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
+# Copy go.mod and go.sum files for dependency resolution
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Install gRPC and Protobuf tools
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+# Copy the rest of the application source code
 COPY . .
 
+# Run go mod tidy to clean up dependencies
 RUN go mod tidy
 
+# Build the Go application
 RUN go build -o server main.go
 
+# Expose the gRPC port
 EXPOSE 50051
 
+# Command to run the application
 CMD ["./server"]
-
-# # Copy the go mod and sum files
-# COPY server/go.mod server/go.sum ./
-
-# # Download the dependencies
-# RUN go mod download
-
-# # Copy the source code into the container
-# COPY server /app
-
-# # Build the Go app
-# RUN go build -o server main.go
-
-# # Start a new stage from scratch
-# FROM debian:bullseye-slim
-
-# # Set the Current Working Directory inside the container
-# WORKDIR /app
-
-# # Copy the Pre-built binary file from the previous stage
-# COPY --from=builder /app/server .
-
-# # Ensure the binary has execute permissions
-# RUN chmod a+x ./server
-
-# # Expose port 50051 to the outside world
-# EXPOSE 50051
-
-# # Command to run the executable
-# CMD ["./server"]
