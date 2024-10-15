@@ -262,7 +262,7 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 	// After successfully updating the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_update",
-    Sender:           "jaijai211075@gmail.com",
+    Sender:           "soeisoftarch@gmail.com",
     Receiver:         "jcypher2121@gmail.com",
     Subject:          "Event Update",
     BodyMessage:      "The event details have been updated.",
@@ -316,7 +316,7 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		// After successfully deleting the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_delete",
-		Sender:           "jaijai211075@gmail.com",
+		Sender:           "soeisoftarch@gmail.com",
 		Receiver:         "jcypher2121@gmail.com",
 		Subject:          "Event Delete",
 		BodyMessage:      "The event details have been updated.",
@@ -441,8 +441,8 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		// After successfully joining the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_update",
-		Sender:           "jaijai211075@gmail.com",
-		Receiver:         "jcypher2121@gmail.com",
+		Sender:           "soeisoftarch@gmail.com",
+		Receiver:         "6430386821@student.chula.ac.th",
 		Subject:          "Event Join",
 		BodyMessage:      "The event details have been updated.",
 		Status:           "pending",
@@ -492,7 +492,7 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 		// After successfully leaving the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_update",
-		Sender:           "jaijai211075@gmail.com",
+		Sender:           "soeisoftarch@gmail.com",
 		Receiver:         "jcypher2121@gmail.com",
 		Subject:          "Event Leave",
 		BodyMessage:      "The event details have been updated.",
