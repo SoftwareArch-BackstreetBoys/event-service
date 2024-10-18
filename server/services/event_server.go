@@ -5,6 +5,7 @@ import (
 	"log"
 	"server/configs"
 	"server/models"
+	"server/queue"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -258,6 +259,22 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 		return nil, err
 	}
 
+	// After successfully updating the event, send a notification
+	notification := models.NotificationMessage{
+		NotificationType: "event_update",
+    Sender:           "soeisoftarch@gmail.com",
+    Receiver:         "jcypher2121@gmail.com",
+    Subject:          "Event Update",
+    BodyMessage:      "The event details have been updated.",
+    Status:           "pending",
+	}
+
+	err = queue.SendMessage(&notification)
+    if err != nil {
+        log.Println("Failed to publish message to RabbitMQ:", err)
+        // Handle error if needed
+  	}
+
 	// Return the updated event in the UpdateEventResponse
 	return &UpdateEventResponse{
 		Event: &Event{
@@ -294,6 +311,22 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 	_, err = eventParticipationCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
 	if err != nil {
 		return &DeleteEventResponse{Success: false}, err
+	}
+
+		// After successfully deleting the event, send a notification
+	notification := models.NotificationMessage{
+		NotificationType: "event_delete",
+		Sender:           "soeisoftarch@gmail.com",
+		Receiver:         "jcypher2121@gmail.com",
+		Subject:          "Event Delete",
+		BodyMessage:      "The event details have been updated.",
+		Status:           "pending",
+	}
+
+	err = queue.SendMessage(&notification)
+	if err != nil {
+		log.Println("Failed to publish message to RabbitMQ:", err)
+		// Handle error if needed
 	}
 
 	return &DeleteEventResponse{Success: true}, nil
@@ -405,6 +438,22 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, err
 	}
 
+		// After successfully joining the event, send a notification
+	notification := models.NotificationMessage{
+		NotificationType: "event_update",
+		Sender:           "soeisoftarch@gmail.com",
+		Receiver:         "6430386821@student.chula.ac.th",
+		Subject:          "Event Join",
+		BodyMessage:      "The event details have been updated.",
+		Status:           "pending",
+	}
+
+	err = queue.SendMessage(&notification)
+		if err != nil {
+			log.Println("Failed to publish message to RabbitMQ:", err)
+			// Handle error if needed
+	}
+
 	return &JoinEventResponse{Success: true}, nil
 }
 
@@ -438,6 +487,22 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 	_, err = eventCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return &LeaveEventResponse{Success: false}, err
+	}
+
+		// After successfully leaving the event, send a notification
+	notification := models.NotificationMessage{
+		NotificationType: "event_update",
+		Sender:           "soeisoftarch@gmail.com",
+		Receiver:         "jcypher2121@gmail.com",
+		Subject:          "Event Leave",
+		BodyMessage:      "The event details have been updated.",
+		Status:           "pending",
+	}
+
+	err = queue.SendMessage(&notification)
+	if err != nil {
+		log.Println("Failed to publish message to RabbitMQ:", err)
+		// Handle error if needed
 	}
 
 	return &LeaveEventResponse{Success: true}, nil
