@@ -9,7 +9,7 @@ services:
     depends_on:
       - server
     ports:
-      - "8080:8080"
+      - "6000:6000"
     # Optionally, set environment variables or volumes if needed
 
   server:
