@@ -36,7 +36,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 }
 
 // GetAllEventsHandler handles fetching all events
-func (app *App) getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) getAllEventsHandler(w http.ResponseWriter, _ *http.Request) {
 	res, err := app.eventService.GetAllEvents()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
