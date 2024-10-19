@@ -3,13 +3,10 @@ module server
 go 1.23
 
 require (
+	github.com/rabbitmq/amqp091-go v1.10.0
 	go.mongodb.org/mongo-driver v1.16.1
 	google.golang.org/grpc v1.66.2
 	google.golang.org/protobuf v1.34.2
-)
-
-require (
-	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 )
 
 require (

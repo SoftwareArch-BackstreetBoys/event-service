@@ -7,11 +7,20 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func EnvPort() string {
+func EnvHTTPPort() string {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	return os.Getenv("PORT")
+	return os.Getenv("HTTP_PORT")
+}
+
+func EnvGRPCServerPort() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	return os.Getenv("GRPC_SERVER_PORT")
 }
