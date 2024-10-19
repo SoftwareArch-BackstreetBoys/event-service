@@ -1,4 +1,8 @@
-version: '3.8'
+version: "3.8"
+
+networks:
+  shared-network:
+    external: true
 
 services:
   client:
@@ -19,4 +23,6 @@ services:
     container_name: event-service-server
     ports:
       - "50051:50051"
+    networks:
+      - shared-network
     # Optionally, set environment variables or volumes if needed

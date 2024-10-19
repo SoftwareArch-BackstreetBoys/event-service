@@ -263,7 +263,7 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 	notification := models.NotificationMessage{
 		NotificationType: "event_update",
     Sender:           "soeisoftarch@gmail.com",
-    Receiver:         "jcypher2121@gmail.com",
+    Receiver:         "jaijai211075@gmail.com",
     Subject:          "Event Update",
     BodyMessage:      "The event details have been updated.",
     Status:           "pending",
@@ -317,9 +317,9 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 	notification := models.NotificationMessage{
 		NotificationType: "event_delete",
 		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         "jcypher2121@gmail.com",
+		Receiver:         "jaijai211075@gmail.com",
 		Subject:          "Event Delete",
-		BodyMessage:      "The event details have been updated.",
+		BodyMessage:      "The event details have been deleted.",
 		Status:           "pending",
 	}
 
@@ -440,11 +440,11 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 
 		// After successfully joining the event, send a notification
 	notification := models.NotificationMessage{
-		NotificationType: "event_update",
+		NotificationType: "event_join",
 		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         "6430386821@student.chula.ac.th",
+		Receiver:         "jaijai211075@gmail.com",
 		Subject:          "Event Join",
-		BodyMessage:      "The event details have been updated.",
+		BodyMessage:      "Someone join this event.",
 		Status:           "pending",
 	}
 
@@ -491,11 +491,11 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 
 		// After successfully leaving the event, send a notification
 	notification := models.NotificationMessage{
-		NotificationType: "event_update",
+		NotificationType: "event_leave",
 		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         "jcypher2121@gmail.com",
+		Receiver:         "jaijai211075@gmail.com",
 		Subject:          "Event Leave",
-		BodyMessage:      "The event details have been updated.",
+		BodyMessage:      "Someone leave this event.",
 		Status:           "pending",
 	}
 
