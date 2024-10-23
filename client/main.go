@@ -35,6 +35,12 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// HealthCheckHandler handles health check requests
+func (app *App) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK")) // Respond with a simple "OK" message
+}
+
 // GetAllEventsHandler handles fetching all events
 func (app *App) getAllEventsHandler(w http.ResponseWriter, _ *http.Request) {
 	res, err := app.eventService.GetAllEvents()
@@ -229,6 +235,7 @@ func main() {
 	}
 
 	// Set up HTTP routes and wrap them with CORS middleware
+	http.Handle("/health", corsMiddleware(http.HandlerFunc(app.healthCheckHandler)))                          // Health check route
 	http.Handle("/events", corsMiddleware(http.HandlerFunc(app.eventsHandler)))                               // Combined handler for GET and POST
 	http.Handle("/events/", corsMiddleware(http.HandlerFunc(app.getEventHandler)))                            // Handler for fetching an event by ID
 	http.Handle("/users/", corsMiddleware(http.HandlerFunc(app.getAllEventsByUserHandler)))                   // Handler for getting all events by user ID

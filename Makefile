@@ -1,12 +1,12 @@
 # Makefile
 
-.PHONY: build run
+.PHONY: run
 
 build:
 	docker-compose build
 
-run: build
-	docker-compose up
+run:
+	docker-compose up --build
 
 stop:
 	docker-compose down
