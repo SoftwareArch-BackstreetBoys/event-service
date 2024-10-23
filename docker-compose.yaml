@@ -2,7 +2,7 @@ version: "3.8"
 
 networks:
   shared-network:
-    external: true
+    driver: bridge # Default network driver, Docker will create it automatically
 
 services:
   client:
@@ -14,6 +14,8 @@ services:
       - server
     ports:
       - "6001:6001"
+    networks:
+      - shared-network
     # Optionally, set environment variables or volumes if needed
 
   server:

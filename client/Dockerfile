@@ -1,29 +1,26 @@
-# Use a Go base image
+# Use the Golang image as the builder
 FROM golang:1.23 AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-# # Copy the go mod and sum files
-# COPY client/go.mod client/go.sum ./
+# Copy go.mod and go.sum files for dependency resolution
+COPY go.mod go.sum ./
 
-# # Download the dependencies
-# RUN go mod download
+# Download dependencies
+RUN go mod download
 
-# # Copy the source code into the container
-# COPY client /app
+# Copy the rest of the application source code
+COPY . .
 
-# # Build the Go app
-# RUN go build -o client main.go
+# Run go mod tidy to clean up dependencies
+RUN go mod tidy
 
-# # Start a new stage from scratch
-# FROM debian:bullseye-slim
+# Build the Go application (client binary)
+RUN go build -o client main.go
 
-# # Set the Current Working Directory inside the container
-# WORKDIR /app
+# Expose the gRPC port
+EXPOSE 6001
 
-# # Copy the Pre-built binary file from the previous stage
-# COPY --from=builder /app/client .
-
-# # Command to run the executable
-# CMD ["./client"]
+# Command to run the application
+CMD ["./client"]
