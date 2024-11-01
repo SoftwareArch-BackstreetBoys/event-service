@@ -7,7 +7,7 @@ import (
 type EventService interface {
 	CreateEvent(title string, description string, datetime string, location string, max_participation int64, club_id string, created_by string) (*CreateEventResponse, error)
 	GetEvent(id string) (*GetEventResponse, error)
-	UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64, club_id string) (*UpdateEventResponse, error)
+	UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64) (*UpdateEventResponse, error)
 	DeleteEvent(id string) (*DeleteEventResponse, error)
 	GetAllEvents() (*GetAllEventsResponse, error)
 	JoinEvent(event_id string, user_id string) (*JoinEventResponse, error)
@@ -58,7 +58,7 @@ func (base eventService) GetEvent(id string) (*GetEventResponse, error) {
 	return res, nil
 }
 
-func (base eventService) UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64, club_id string) (*UpdateEventResponse, error) {
+func (base eventService) UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64) (*UpdateEventResponse, error) {
 	req := UpdateEventRequest{
 		Id:               id,
 		Title:            title,
@@ -66,7 +66,6 @@ func (base eventService) UpdateEvent(id string, title string, description string
 		Datetime:         datetime,
 		Location:         location,
 		MaxParticipation: max_participation,
-		ClubId:           club_id,
 	}
 
 	res, err := base.eventServiceClient.UpdateEvent(context.Background(), &req)
