@@ -86,14 +86,8 @@ func (app *App) getEventHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetAllEventsByUserHandler handles fetching all events by user ID
 func (app *App) getAllEventsByUserHandler(w http.ResponseWriter, r *http.Request) {
-	// userID := strings.TrimPrefix(r.URL.Path, "/users/")
-	// userID = strings.TrimSuffix(userID, "/events")
-
-	userID, err := util.GetUserIdFromRequestObject(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	userID := strings.TrimPrefix(r.URL.Path, "/users/")
+	userID = strings.TrimSuffix(userID, "/events")
 
 	res, err := app.eventService.GetAllEventsByUser(userID)
 	if err != nil {
