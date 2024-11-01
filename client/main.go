@@ -8,6 +8,7 @@ import (
 
 	"client/configs"
 	"client/services"
+	"client/util"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -87,6 +88,7 @@ func (app *App) getEventHandler(w http.ResponseWriter, r *http.Request) {
 func (app *App) getAllEventsByUserHandler(w http.ResponseWriter, r *http.Request) {
 	userID := strings.TrimPrefix(r.URL.Path, "/user/")
 	userID = strings.TrimSuffix(userID, "/events")
+
 	res, err := app.eventService.GetAllEventsByUser(userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -146,8 +148,15 @@ func (app *App) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetAllParticipatedEventsHandler handles fetching all participated events for a user
 func (app *App) getAllParticipatedEventsHandler(w http.ResponseWriter, r *http.Request) {
-	userID := strings.TrimPrefix(r.URL.Path, "/user/")
-	userID = strings.TrimSuffix(userID, "/participated-events")
+	// userID := strings.TrimPrefix(r.URL.Path, "/users/")
+	// userID = strings.TrimSuffix(userID, "/participated-events")
+
+	userID, err := util.GetUserIdFromRequestObject(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	res, err := app.eventService.GetAllParticipatedEvents(userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -169,7 +178,13 @@ func (app *App) joinEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	req.EventId = eventID
 
-	res, err := app.eventService.JoinEvent(req.EventId, req.UserId)
+	userID, err := util.GetUserIdFromRequestObject(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res, err := app.eventService.JoinEvent(req.EventId, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -190,7 +205,13 @@ func (app *App) leaveEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	req.EventId = eventID
 
-	res, err := app.eventService.LeaveEvent(req.EventId, req.UserId)
+	userID, err := util.GetUserIdFromRequestObject(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res, err := app.eventService.LeaveEvent(req.EventId, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
