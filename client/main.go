@@ -172,10 +172,10 @@ func (app *App) joinEventHandler(w http.ResponseWriter, r *http.Request) {
 	eventID := strings.TrimPrefix(r.URL.Path, "/event/")
 	eventID = strings.TrimSuffix(eventID, "/join")
 	var req services.JoinEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+	// if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	// 	http.Error(w, "Invalid request body", http.StatusBadRequest)
+	// 	return
+	// }
 	req.EventId = eventID
 
 	userID, err := util.GetUserIdFromRequestObject(r)
@@ -199,10 +199,10 @@ func (app *App) leaveEventHandler(w http.ResponseWriter, r *http.Request) {
 	eventID := strings.TrimPrefix(r.URL.Path, "/event/")
 	eventID = strings.TrimSuffix(eventID, "/leave")
 	var req services.LeaveEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+	// if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	// 	http.Error(w, "Invalid request body", http.StatusBadRequest)
+	// 	return
+	// }
 	req.EventId = eventID
 
 	userID, err := util.GetUserIdFromRequestObject(r)
