@@ -3,6 +3,7 @@ package util
 import (
 	"errors"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/golang-jwt/jwt"
@@ -43,4 +44,15 @@ func GetUserIdFromJWT(jwtToken string) (string, error) {
 	userClaims := parsedToken.Claims.(*UserClaims)
 
 	return userClaims.Id, nil
+}
+
+func GetUserIdFromRequestObject(r *http.Request) (string, error) {
+	jwtCookie, err := r.Cookie("jwt")
+	if err != nil {
+		return "", err
+	}
+
+	jwtToken := jwtCookie.Value
+
+	return GetUserIdFromJWT(jwtToken)
 }
