@@ -2,10 +2,12 @@ package services
 
 import (
 	context "context"
+	"fmt"
 	"log"
 	"server/configs"
 	"server/models"
 	"server/queue"
+	"server/util"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -259,11 +261,16 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 		return nil, err
 	}
 
+	email, err := util.GetUserEmailById(updatedEvent.CreatedBy)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// After successfully updating the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_update",
 		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         "jaijai211075@gmail.com",
+		Receiver:         email,
 		Subject:          "Event Update",
 		BodyMessage:      "The event details have been updated.",
 		Status:           "pending",
@@ -301,6 +308,12 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		return nil, err
 	}
 
+	var event models.MongoEvent
+	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+	if err != nil {
+		return nil, err
+	}
+
 	// Delete the event from the MongoDB collection
 	_, err = eventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
 	if err != nil {
@@ -313,11 +326,16 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		return &DeleteEventResponse{Success: false}, err
 	}
 
+	email, err := util.GetUserEmailById(event.CreatedBy)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// After successfully deleting the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_delete",
 		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         "jaijai211075@gmail.com",
+		Receiver:         email,
 		Subject:          "Event Delete",
 		BodyMessage:      "The event details have been deleted.",
 		Status:           "pending",
@@ -431,11 +449,16 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, err
 	}
 
+	email, err := util.GetUserEmailById(event.CreatedBy)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// After successfully joining the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_join",
 		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         "jaijai211075@gmail.com",
+		Receiver:         email,
 		Subject:          "Event Join",
 		BodyMessage:      "Someone join this event.",
 		Status:           "pending",
@@ -458,6 +481,12 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 	}
 	userID := req.UserId
 
+	var event models.MongoEvent
+	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+	if err != nil {
+		return nil, err
+	}
+
 	// Check if the user is participating
 	var participation models.MongoEventParticipation
 	err = eventParticipationCollection.FindOne(ctx, bson.M{"event_id": eventID, "user_id": userID}).Decode(&participation)
@@ -479,11 +508,16 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 		return &LeaveEventResponse{Success: false}, err
 	}
 
+	email, err := util.GetUserEmailById(event.CreatedBy)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// After successfully leaving the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_leave",
 		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         "jaijai211075@gmail.com",
+		Receiver:         email,
 		Subject:          "Event Leave",
 		BodyMessage:      "Someone leave this event.",
 		Status:           "pending",
