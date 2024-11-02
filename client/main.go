@@ -61,7 +61,13 @@ func (app *App) createEventHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := app.eventService.CreateEvent(req.Title, req.Description, req.Datetime, req.Location, req.MaxParticipation, req.ClubId, req.CreatedBy)
+	userID, err := util.GetUserIdFromRequestObject(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res, err := app.eventService.CreateEvent(req.Title, req.Description, req.Datetime, req.Location, req.MaxParticipation, req.ClubId, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

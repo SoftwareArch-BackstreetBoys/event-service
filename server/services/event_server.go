@@ -262,18 +262,18 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 	// After successfully updating the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_update",
-    Sender:           "soeisoftarch@gmail.com",
-    Receiver:         "jaijai211075@gmail.com",
-    Subject:          "Event Update",
-    BodyMessage:      "The event details have been updated.",
-    Status:           "pending",
+		Sender:           "soeisoftarch@gmail.com",
+		Receiver:         "jaijai211075@gmail.com",
+		Subject:          "Event Update",
+		BodyMessage:      "The event details have been updated.",
+		Status:           "pending",
 	}
 
 	err = queue.SendMessage(&notification)
-    if err != nil {
-        log.Println("Failed to publish message to RabbitMQ:", err)
-        // Handle error if needed
-  	}
+	if err != nil {
+		log.Println("Failed to publish message to RabbitMQ:", err)
+		// Handle error if needed
+	}
 
 	// Return the updated event in the UpdateEventResponse
 	return &UpdateEventResponse{
@@ -313,7 +313,7 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		return &DeleteEventResponse{Success: false}, err
 	}
 
-		// After successfully deleting the event, send a notification
+	// After successfully deleting the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_delete",
 		Sender:           "soeisoftarch@gmail.com",
@@ -334,11 +334,7 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 
 // GetAllParticipatedEvents retrieves events where the user is a participant
 func (eventServiceServer) GetAllParticipatedEvents(ctx context.Context, req *GetAllParticipatedEventsRequest) (*GetAllParticipatedEventsResponse, error) {
-	// Convert user ID from string to ObjectID
-	userID, err := primitive.ObjectIDFromHex(req.UserId)
-	if err != nil {
-		return nil, err
-	}
+	userID := req.UserId
 
 	// Find all events where the user is a participant
 	cur, err := eventParticipationCollection.Find(ctx, bson.M{"user_id": userID})
@@ -348,7 +344,7 @@ func (eventServiceServer) GetAllParticipatedEvents(ctx context.Context, req *Get
 	defer cur.Close(ctx)
 
 	// Extract event IDs from the participation documents
-	var eventIDs []primitive.ObjectID
+	eventIDs := make([]primitive.ObjectID, 0)
 	for cur.Next(ctx) {
 		var participation models.MongoEventParticipation
 		if err := cur.Decode(&participation); err != nil {
@@ -397,10 +393,7 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 	if err != nil {
 		return &JoinEventResponse{Success: false}, err
 	}
-	userID, err := primitive.ObjectIDFromHex(req.UserId)
-	if err != nil {
-		return &JoinEventResponse{Success: false}, err
-	}
+	userID := req.UserId
 
 	// Check if the event exists and can accommodate more participants
 	var event models.MongoEvent
@@ -438,7 +431,7 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, err
 	}
 
-		// After successfully joining the event, send a notification
+	// After successfully joining the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_join",
 		Sender:           "soeisoftarch@gmail.com",
@@ -449,9 +442,9 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 	}
 
 	err = queue.SendMessage(&notification)
-		if err != nil {
-			log.Println("Failed to publish message to RabbitMQ:", err)
-			// Handle error if needed
+	if err != nil {
+		log.Println("Failed to publish message to RabbitMQ:", err)
+		// Handle error if needed
 	}
 
 	return &JoinEventResponse{Success: true}, nil
@@ -463,10 +456,7 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 	if err != nil {
 		return &LeaveEventResponse{Success: false}, err
 	}
-	userID, err := primitive.ObjectIDFromHex(req.UserId)
-	if err != nil {
-		return &LeaveEventResponse{Success: false}, err
-	}
+	userID := req.UserId
 
 	// Check if the user is participating
 	var participation models.MongoEventParticipation
@@ -489,7 +479,7 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 		return &LeaveEventResponse{Success: false}, err
 	}
 
-		// After successfully leaving the event, send a notification
+	// After successfully leaving the event, send a notification
 	notification := models.NotificationMessage{
 		NotificationType: "event_leave",
 		Sender:           "soeisoftarch@gmail.com",
