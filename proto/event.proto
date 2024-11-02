@@ -78,7 +78,6 @@ message UpdateEventRequest {
     string datetime = 4;
     string location = 5;
     int64 max_participation = 6;
-    string club_id = 7;
 }
 
 message UpdateEventResponse {

@@ -79,7 +79,7 @@ func (app *App) createEventHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetEventHandler handles fetching an event by ID
 func (app *App) getEventHandler(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/events/")
+	id := strings.TrimPrefix(r.URL.Path, "/event/")
 	res, err := app.eventService.GetEvent(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -92,7 +92,7 @@ func (app *App) getEventHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetAllEventsByUserHandler handles fetching all events by user ID
 func (app *App) getAllEventsByUserHandler(w http.ResponseWriter, r *http.Request) {
-	userID := strings.TrimPrefix(r.URL.Path, "/users/")
+	userID := strings.TrimPrefix(r.URL.Path, "/user/")
 	userID = strings.TrimSuffix(userID, "/events")
 
 	res, err := app.eventService.GetAllEventsByUser(userID)
@@ -107,7 +107,7 @@ func (app *App) getAllEventsByUserHandler(w http.ResponseWriter, r *http.Request
 
 // GetAllEventsByClubHandler handles fetching all events by club ID
 func (app *App) getAllEventsByClubHandler(w http.ResponseWriter, r *http.Request) {
-	clubID := strings.TrimPrefix(r.URL.Path, "/clubs/")
+	clubID := strings.TrimPrefix(r.URL.Path, "/club/")
 	clubID = strings.TrimSuffix(clubID, "/events")
 	res, err := app.eventService.GetAllEventsByClub(clubID)
 	if err != nil {
@@ -121,7 +121,7 @@ func (app *App) getAllEventsByClubHandler(w http.ResponseWriter, r *http.Request
 
 // UpdateEventHandler handles updating an existing event
 func (app *App) updateEventHandler(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/events/")
+	id := strings.TrimPrefix(r.URL.Path, "/event/")
 	var req services.UpdateEventRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -129,7 +129,7 @@ func (app *App) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Id = id
 
-	res, err := app.eventService.UpdateEvent(req.Id, req.Title, req.Description, req.Datetime, req.Location, req.MaxParticipation, req.ClubId)
+	res, err := app.eventService.UpdateEvent(req.Id, req.Title, req.Description, req.Datetime, req.Location, req.MaxParticipation)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -141,7 +141,7 @@ func (app *App) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 
 // DeleteEventHandler handles deleting an event by ID
 func (app *App) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/events/")
+	id := strings.TrimPrefix(r.URL.Path, "/event/")
 	res, err := app.eventService.DeleteEvent(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -175,13 +175,13 @@ func (app *App) getAllParticipatedEventsHandler(w http.ResponseWriter, r *http.R
 
 // JoinEventHandler handles joining an event
 func (app *App) joinEventHandler(w http.ResponseWriter, r *http.Request) {
-	eventID := strings.TrimPrefix(r.URL.Path, "/events/")
+	eventID := strings.TrimPrefix(r.URL.Path, "/event/")
 	eventID = strings.TrimSuffix(eventID, "/join")
 	var req services.JoinEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+	// if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	// 	http.Error(w, "Invalid request body", http.StatusBadRequest)
+	// 	return
+	// }
 	req.EventId = eventID
 
 	userID, err := util.GetUserIdFromRequestObject(r)
@@ -202,13 +202,13 @@ func (app *App) joinEventHandler(w http.ResponseWriter, r *http.Request) {
 
 // LeaveEventHandler handles leaving an event
 func (app *App) leaveEventHandler(w http.ResponseWriter, r *http.Request) {
-	eventID := strings.TrimPrefix(r.URL.Path, "/events/")
+	eventID := strings.TrimPrefix(r.URL.Path, "/event/")
 	eventID = strings.TrimSuffix(eventID, "/leave")
 	var req services.LeaveEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+	// if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	// 	http.Error(w, "Invalid request body", http.StatusBadRequest)
+	// 	return
+	// }
 	req.EventId = eventID
 
 	userID, err := util.GetUserIdFromRequestObject(r)
@@ -262,17 +262,13 @@ func main() {
 	}
 
 	// Set up HTTP routes and wrap them with CORS middleware
-	http.Handle("/health", corsMiddleware(http.HandlerFunc(app.healthCheckHandler)))                          // Health check route
-	http.Handle("/events", corsMiddleware(http.HandlerFunc(app.eventsHandler)))                               // Combined handler for GET and POST
-	http.Handle("/events/", corsMiddleware(http.HandlerFunc(app.getEventHandler)))                            // Handler for fetching an event by ID
-	http.Handle("/users/", corsMiddleware(http.HandlerFunc(app.getAllEventsByUserHandler)))                   // Handler for getting all events by user ID
-	http.Handle("/clubs/", corsMiddleware(http.HandlerFunc(app.getAllEventsByClubHandler)))                   // Handler for getting all events by club ID
-	http.Handle("/events/update/", corsMiddleware(http.HandlerFunc(app.updateEventHandler)))                  // Handler for updating an event
-	http.Handle("/events/delete/", corsMiddleware(http.HandlerFunc(app.deleteEventHandler)))                  // Handler for deleting an event
-	http.Handle("/users/participated", corsMiddleware(http.HandlerFunc(app.getAllParticipatedEventsHandler))) // Handler for all participated events
-	http.Handle("/events/join/", corsMiddleware(http.HandlerFunc(app.joinEventHandler)))                      // Handler for joining an event
-	http.Handle("/events/leave/", corsMiddleware(http.HandlerFunc(app.leaveEventHandler)))                    // Handler for leaving an event
-	http.Handle("/events/search", corsMiddleware(http.HandlerFunc(app.searchEventsHandler)))                  // Handler for searching events
+	http.Handle("/health", corsMiddleware(http.HandlerFunc(app.healthCheckHandler)))         // Health check route
+	http.Handle("/events", corsMiddleware(http.HandlerFunc(app.getAllEventsHandler)))        // Handler for get all events
+	http.Handle("/event", corsMiddleware(http.HandlerFunc(app.createEventHandler)))          // Handler for create an event
+	http.Handle("/event/", corsMiddleware(http.HandlerFunc(app.eventHandler)))               // Combine Handler for fetching/updating/deleting an event by ID and join/leave event
+	http.Handle("/club/", corsMiddleware(http.HandlerFunc(app.getAllEventsByClubHandler)))   // Handler for getting all events by club ID
+	http.Handle("/user/", corsMiddleware(http.HandlerFunc(app.usersHandler)))                // Combine Handler for user events and user participated-events
+	http.Handle("/events/search", corsMiddleware(http.HandlerFunc(app.searchEventsHandler))) // Handler for searching events
 
 	// Start the HTTP server
 	port := ":" + configs.EnvHTTPPort()
@@ -282,14 +278,39 @@ func main() {
 	}
 }
 
-// eventsHandler handles both GET and POST requests for /events
-func (app *App) eventsHandler(w http.ResponseWriter, r *http.Request) {
+// eventsHandler handles both GET, PUT, and DELETE requests for /event
+func (app *App) eventHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		app.getAllEventsHandler(w, r) // Fetch all events
+		app.getEventHandler(w, r) // Fetch event
+	case http.MethodPut:
+		app.updateEventHandler(w, r) // Update event
+	case http.MethodDelete:
+		app.deleteEventHandler(w, r) // Delete event
 	case http.MethodPost:
-		app.createEventHandler(w, r) // Create a new event
+		path := r.URL.Path
+
+		if strings.HasSuffix(path, "/join") {
+			app.joinEventHandler(w, r) // Join event
+		} else if strings.HasSuffix(path, "/leave") {
+			app.leaveEventHandler(w, r) // Leave event
+		} else {
+			http.Error(w, "Not found", http.StatusNotFound)
+		}
+
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (app *App) usersHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+
+	if strings.HasSuffix(path, "/events") {
+		app.getAllEventsByUserHandler(w, r)
+	} else if strings.HasSuffix(path, "/participated-events") {
+		app.getAllParticipatedEventsHandler(w, r)
+	} else {
+		http.Error(w, "Not found", http.StatusNotFound)
 	}
 }
