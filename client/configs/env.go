@@ -24,3 +24,12 @@ func EnvGRPCServerPort() string {
 
 	return os.Getenv("GRPC_SERVER_PORT")
 }
+
+func EnvFrontendRoute() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	return os.Getenv("FRONTEND_ROUTE")
+}

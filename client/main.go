@@ -19,12 +19,22 @@ type App struct {
 	eventService services.EventService
 }
 
-// CORS middleware to handle CORS requests
+// CORS middleware to handle CORS requests with specific origin and credentials support
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")                                // Allow all origins
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") // Allow methods
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")                    // Allow specific headers
+		// Specify the allowed origin
+		allowedOrigin := configs.EnvFrontendRoute()
+
+		// Get the origin of the incoming request
+		origin := r.Header.Get("Origin")
+
+		// Check if the origin matches the allowed origin
+		if origin == allowedOrigin {
+			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true") // Allow credentials (cookies, etc.)
+			w.Header().Set("Access-Control-Allow-Methods", "POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization") // Allow additional headers
+		}
 
 		// If it's a preflight request (OPTIONS), respond with a 200 status
 		if r.Method == http.MethodOptions {
@@ -32,7 +42,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r) // Call the next handler
+		// Proceed to the next handler
+		next.ServeHTTP(w, r)
 	})
 }
 
