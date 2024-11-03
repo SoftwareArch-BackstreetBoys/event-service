@@ -5,7 +5,7 @@ import (
 )
 
 type EventService interface {
-	CreateEvent(title string, description string, datetime string, location string, max_participation int64, club_id string, created_by string) (*CreateEventResponse, error)
+	CreateEvent(title string, description string, datetime string, location string, max_participation int64, club_id string, created_by_id string, create_by_name string) (*CreateEventResponse, error)
 	GetEvent(id string) (*GetEventResponse, error)
 	UpdateEvent(id string, title string, description string, datetime string, location string, max_participation int64) (*UpdateEventResponse, error)
 	DeleteEvent(id string) (*DeleteEventResponse, error)
@@ -26,7 +26,7 @@ func NewEventService(eventServiceClient EventServiceClient) EventService {
 	return eventService{eventServiceClient}
 }
 
-func (base eventService) CreateEvent(title string, description string, datetime string, location string, max_participation int64, club_id string, created_by string) (*CreateEventResponse, error) {
+func (base eventService) CreateEvent(title string, description string, datetime string, location string, max_participation int64, club_id string, created_by_id string, created_by_name string) (*CreateEventResponse, error) {
 	req := CreateEventRequest{
 		Title:            title,
 		Description:      description,
@@ -34,7 +34,8 @@ func (base eventService) CreateEvent(title string, description string, datetime 
 		Location:         location,
 		MaxParticipation: max_participation,
 		ClubId:           club_id,
-		CreatedBy:        created_by,
+		CreatedById:      created_by_id,
+		CreatedByName:    created_by_name,
 	}
 
 	res, err := base.eventServiceClient.CreateEvent(context.Background(), &req)

@@ -59,7 +59,8 @@ func (eventServiceServer) GetAllEvents(ctx context.Context, req *GetAllEventsReq
 			MaxParticipation: event.MaxParticipation,
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
-			CreatedBy:        event.CreatedBy,
+			CreatedById:      event.CreatedById,
+			CreatedByName:    event.CreatedByName,
 			CreatedAt:        timestamppb.New(event.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
 			UpdatedAt:        timestamppb.New(event.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
 		})
@@ -86,7 +87,8 @@ func (eventServiceServer) CreateEvent(ctx context.Context, req *CreateEventReque
 		MaxParticipation: req.MaxParticipation,
 		CurParticipation: 0,
 		ClubId:           req.ClubId,
-		CreatedBy:        req.CreatedBy,
+		CreatedById:      req.CreatedById,
+		CreatedByName:    req.CreatedByName,
 		CreatedAt:        currentTime,
 		UpdatedAt:        currentTime,
 	}
@@ -130,7 +132,8 @@ func (s eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) 
 			MaxParticipation: event.MaxParticipation,
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
-			CreatedBy:        event.CreatedBy,
+			CreatedById:      event.CreatedById,
+			CreatedByName:    event.CreatedByName,
 			CreatedAt:        timestamppb.New(event.CreatedAt),
 			UpdatedAt:        timestamppb.New(event.UpdatedAt),
 		},
@@ -169,7 +172,8 @@ func (eventServiceServer) GetAllEventsByUser(ctx context.Context, req *GetAllEve
 			MaxParticipation: event.MaxParticipation,
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
-			CreatedBy:        event.CreatedBy,
+			CreatedById:      event.CreatedById,
+			CreatedByName:    event.CreatedByName,
 			CreatedAt:        timestamppb.New(event.CreatedAt),
 			UpdatedAt:        timestamppb.New(event.UpdatedAt),
 		})
@@ -214,7 +218,8 @@ func (eventServiceServer) GetAllEventsByClub(ctx context.Context, req *GetAllEve
 			MaxParticipation: event.MaxParticipation,
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
-			CreatedBy:        event.CreatedBy,
+			CreatedById:      event.CreatedById,
+			CreatedByName:    event.CreatedByName,
 			CreatedAt:        timestamppb.New(event.CreatedAt),
 			UpdatedAt:        timestamppb.New(event.UpdatedAt),
 		})
@@ -261,7 +266,7 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 		return nil, err
 	}
 
-	email, err := util.GetUserEmailById(updatedEvent.CreatedBy)
+	email, err := util.GetUserEmailById(updatedEvent.CreatedById)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -293,7 +298,8 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 			MaxParticipation: updatedEvent.MaxParticipation,
 			CurParticipation: updatedEvent.CurParticipation,
 			ClubId:           updatedEvent.ClubId,
-			CreatedBy:        updatedEvent.CreatedBy,
+			CreatedById:      updatedEvent.CreatedById,
+			CreatedByName:    updatedEvent.CreatedByName,
 			CreatedAt:        timestamppb.New(updatedEvent.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
 			UpdatedAt:        timestamppb.New(updatedEvent.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
 		},
@@ -326,7 +332,7 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		return &DeleteEventResponse{Success: false}, err
 	}
 
-	email, err := util.GetUserEmailById(event.CreatedBy)
+	email, err := util.GetUserEmailById(event.CreatedById)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -395,7 +401,8 @@ func (eventServiceServer) GetAllParticipatedEvents(ctx context.Context, req *Get
 			MaxParticipation: event.MaxParticipation,
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
-			CreatedBy:        event.CreatedBy,
+			CreatedById:      event.CreatedById,
+			CreatedByName:    event.CreatedByName,
 			CreatedAt:        timestamppb.New(event.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
 			UpdatedAt:        timestamppb.New(event.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
 		})
@@ -449,7 +456,7 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, err
 	}
 
-	email, err := util.GetUserEmailById(event.CreatedBy)
+	email, err := util.GetUserEmailById(event.CreatedById)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -508,7 +515,7 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 		return &LeaveEventResponse{Success: false}, err
 	}
 
-	email, err := util.GetUserEmailById(event.CreatedBy)
+	email, err := util.GetUserEmailById(event.CreatedById)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -577,7 +584,8 @@ func (eventServiceServer) SearchEvents(ctx context.Context, req *SearchEventsReq
 			MaxParticipation: event.MaxParticipation,
 			CurParticipation: event.CurParticipation,
 			ClubId:           event.ClubId,
-			CreatedBy:        event.CreatedBy,
+			CreatedById:      event.CreatedById,
+			CreatedByName:    event.CreatedByName,
 			CreatedAt:        timestamppb.New(event.CreatedAt), // Convert time.Time to google.protobuf.Timestamp
 			UpdatedAt:        timestamppb.New(event.UpdatedAt), // Convert time.Time to google.protobuf.Timestamp
 		})

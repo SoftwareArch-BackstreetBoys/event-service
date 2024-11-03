@@ -36,7 +36,8 @@ message CreateEventRequest {
     string location = 4;
     int64 max_participation = 5;
     string club_id = 6;
-    string created_by = 7;
+    string created_by_id = 7;
+    string created_by_name = 8;
 }
 
 message CreateEventResponse {
@@ -141,7 +142,8 @@ message Event {
     int64 max_participation = 6;
     int64 cur_participation = 7;
     string club_id = 8;
-    string created_by = 9;
-    google.protobuf.Timestamp created_at = 10;
-    google.protobuf.Timestamp updated_at = 11;
+    string created_by_id = 9;
+    string created_by_name = 10;
+    google.protobuf.Timestamp created_at = 11;
+    google.protobuf.Timestamp updated_at = 12;
 }

@@ -32,7 +32,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 		if origin == allowedOrigin {
 			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true") // Allow credentials (cookies, etc.)
-			w.Header().Set("Access-Control-Allow-Methods", "POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization") // Allow additional headers
 		}
 
@@ -72,13 +72,13 @@ func (app *App) createEventHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := util.GetUserIdFromRequestObject(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// userID, err := util.GetUserIdFromRequestObject(r)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	res, err := app.eventService.CreateEvent(req.Title, req.Description, req.Datetime, req.Location, req.MaxParticipation, req.ClubId, userID)
+	res, err := app.eventService.CreateEvent(req.Title, req.Description, req.Datetime, req.Location, req.MaxParticipation, req.ClubId, req.CreatedById, req.CreatedByName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -266,6 +266,11 @@ func main() {
 	// Initialize the gRPC client
 	eventClient := services.NewEventServiceClient(cc)
 	eventService := services.NewEventService(eventClient)
+
+	// _, err = eventService.CreateEvent("Test3", "this is the second test", "when", "where", 99, "club_id", "1234", "ping")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	// Create an instance of App
 	app := &App{
