@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"server/configs"
+	"os"
 )
 
 // ResponseBody represents the JSON structure
@@ -23,7 +23,7 @@ func GetUserEmailById(userId string) (string, error) {
 
 	fmt.Println(userId)
 	// Make a GET request to the URL
-	resp, err := http.Get(configs.UserServiceURI() + "/users/" + userId)
+	resp, err := http.Get(os.Getenv("USER_SERVICE_URL") + "/users/" + userId)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch URL: %v", err)
 	}

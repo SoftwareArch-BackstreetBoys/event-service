@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +17,7 @@ func ConnectDB() *mongo.Client {
 	defer cancel() // Ensure cancel is called to avoid context leak
 
 	// Connect to MongoDB using the mongo.Connect method
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(EnvMongoURI()))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGOURI")))
 	if err != nil {
 		log.Fatal(err)
 	}

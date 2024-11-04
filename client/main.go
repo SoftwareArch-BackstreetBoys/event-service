@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
-	"client/configs"
 	"client/services"
 	"client/util"
 
@@ -24,7 +24,7 @@ type App struct {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Specify the allowed origin
-		allowedOrigin := configs.EnvFrontendRoute()
+		allowedOrigin := os.Getenv("FRONTEND_ROUTE")
 
 		// Get the origin of the incoming request
 		origin := r.Header.Get("Origin")
@@ -258,7 +258,7 @@ func (app *App) searchEventsHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Create a gRPC connection
 	creds := insecure.NewCredentials()
-	cc, err := grpc.Dial(configs.EnvGRPCServerPort(), grpc.WithTransportCredentials(creds))
+	cc, err := grpc.Dial(os.Getenv("GRPC_SERVER_PORT"), grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("Failed to dial gRPC server: %v", err)
 	}
@@ -288,7 +288,7 @@ func main() {
 	http.Handle("/events/search", corsMiddleware(http.HandlerFunc(app.searchEventsHandler))) // Handler for searching events
 
 	// Start the HTTP server
-	port := ":" + configs.EnvHTTPPort()
+	port := ":" + os.Getenv("HTTP_PORT")
 	log.Printf("HTTP server started on %s\n", port)
 	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatalf("Failed to start HTTP server: %v", err)
