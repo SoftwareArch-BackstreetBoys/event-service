@@ -232,6 +232,27 @@ func (eventServiceServer) GetAllEventsByClub(ctx context.Context, req *GetAllEve
 	return &GetAllEventsByClubResponse{Events: events}, nil
 }
 
+func getEventParticipatorUserIDsByEventId(ctx context.Context, eventID string) ([]string, error) {
+	cur, err := eventParticipationCollection.Find(ctx, bson.M{"event_id": eventID})
+
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Extract event IDs from the participation documents
+	userIDs := make([]string, 0)
+	for cur.Next(ctx) {
+		var participation models.MongoEventParticipation
+		if err := cur.Decode(&participation); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, participation.UserId)
+	}
+
+	return userIDs, nil
+}
+
 // UpdateEvent updates an event's information in MongoDB and returns the updated event
 func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventRequest) (*UpdateEventResponse, error) {
 	// Convert event ID from string to ObjectID
