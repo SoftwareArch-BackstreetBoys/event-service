@@ -3,13 +3,13 @@
 .PHONY: run
 
 build:
-	docker-compose build
+	docker compose build
 
 run:
-	docker-compose up --build
+	docker compose up --build
 
 stop:
-	docker-compose down
+	docker compose down
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f

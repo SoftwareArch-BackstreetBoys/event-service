@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -165,14 +166,14 @@ func (app *App) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetAllParticipatedEventsHandler handles fetching all participated events for a user
 func (app *App) getAllParticipatedEventsHandler(w http.ResponseWriter, r *http.Request) {
-	// userID := strings.TrimPrefix(r.URL.Path, "/users/")
-	// userID = strings.TrimSuffix(userID, "/participated-events")
+	userID := strings.TrimPrefix(r.URL.Path, "/user/")
+	userID = strings.TrimSuffix(userID, "/participated-events")
 
-	userID, err := util.GetUserIdFromRequestObject(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// userID, err := util.GetUserIdFromRequestObject(r)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
 	res, err := app.eventService.GetAllParticipatedEvents(userID)
 	if err != nil {
@@ -189,19 +190,19 @@ func (app *App) joinEventHandler(w http.ResponseWriter, r *http.Request) {
 	eventID := strings.TrimPrefix(r.URL.Path, "/event/")
 	eventID = strings.TrimSuffix(eventID, "/join")
 	var req services.JoinEventRequest
-	// if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-	// 	http.Error(w, "Invalid request body", http.StatusBadRequest)
-	// 	return
-	// }
-	req.EventId = eventID
-
-	userID, err := util.GetUserIdFromRequestObject(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+	req.EventId = eventID
 
-	res, err := app.eventService.JoinEvent(req.EventId, userID)
+	// userID, err := util.GetUserIdFromRequestObject(r)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	fmt.Println("Join req: ", req.EventId, req.UserId)
+	res, err := app.eventService.JoinEvent(req.EventId, req.UserId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -419,6 +419,7 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, err
 	}
 	userID := req.UserId
+	// fmt.Println("UserId: ", userID)
 
 	// Check if the event exists and can accommodate more participants
 	var event models.MongoEvent
@@ -443,6 +444,7 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		EventId: eventID,
 		UserId:  userID,
 	}
+	// fmt.Println("participation: ", participation)
 	_, err = eventParticipationCollection.InsertOne(ctx, participation)
 	if err != nil {
 		return &JoinEventResponse{Success: false}, err
