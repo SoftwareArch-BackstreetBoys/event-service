@@ -232,6 +232,54 @@ func (eventServiceServer) GetAllEventsByClub(ctx context.Context, req *GetAllEve
 	return &GetAllEventsByClubResponse{Events: events}, nil
 }
 
+func getEventParticipatorUserIDsByEventId(ctx context.Context, eventID primitive.ObjectID) ([]string, error) {
+	cur, err := eventParticipationCollection.Find(ctx, bson.M{"event_id": eventID})
+
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Extract event IDs from the participation documents
+	userIDs := make([]string, 0)
+	for cur.Next(ctx) {
+		var participation models.MongoEventParticipation
+		if err := cur.Decode(&participation); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, participation.UserId)
+	}
+
+	return userIDs, nil
+}
+
+func sendEmailToUserIDs(userIDs []string) error {
+	for _, userID := range userIDs {
+		email, err := util.GetUserEmailById(userID)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// After successfully updating the event, send a notification
+		notification := models.NotificationMessage{
+			NotificationType: "event_update",
+			Sender:           "soeisoftarch@gmail.com",
+			Receiver:         email,
+			Subject:          "Event Update",
+			BodyMessage:      "The event details have been updated.",
+			Status:           "pending",
+		}
+
+		err = queue.SendMessage(&notification)
+		if err != nil {
+			log.Println("Failed to publish message to RabbitMQ:", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
 // UpdateEvent updates an event's information in MongoDB and returns the updated event
 func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventRequest) (*UpdateEventResponse, error) {
 	// Convert event ID from string to ObjectID
@@ -285,6 +333,17 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 	if err != nil {
 		log.Println("Failed to publish message to RabbitMQ:", err)
 		// Handle error if needed
+	}
+
+	participatorsUserIDs, err := getEventParticipatorUserIDsByEventId(ctx, updatedEvent.Id)
+
+	if err == nil {
+		err = sendEmailToUserIDs(participatorsUserIDs)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		log.Println("Failed to get participators ids", err)
 	}
 
 	// Return the updated event in the UpdateEventResponse
@@ -351,6 +410,17 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 	if err != nil {
 		log.Println("Failed to publish message to RabbitMQ:", err)
 		// Handle error if needed
+	}
+
+	participatorsUserIDs, err := getEventParticipatorUserIDsByEventId(ctx, updatedEvent.Id)
+
+	if err == nil {
+		err = sendEmailToUserIDs(participatorsUserIDs)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		log.Println("Failed to get participators ids", err)
 	}
 
 	return &DeleteEventResponse{Success: true}, nil
