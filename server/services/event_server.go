@@ -412,7 +412,7 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		// Handle error if needed
 	}
 
-	participatorsUserIDs, err := getEventParticipatorUserIDsByEventId(ctx, updatedEvent.Id)
+	participatorsUserIDs, err := getEventParticipatorUserIDsByEventId(ctx, event.Id)
 
 	if err == nil {
 		err = sendEmailToUserIDs(participatorsUserIDs)
