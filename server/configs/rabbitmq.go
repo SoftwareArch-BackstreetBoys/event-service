@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"os"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -9,7 +10,7 @@ import (
 // Function to connect to RabbitMQ and return the connection and channel
 func ConnectRabbitMQ() (*amqp.Channel, error) {
 	// Connect to RabbitMQ server
-	conn, err := amqp.Dial("amqp://guest:guest@shared-rabbitmq:5672/")
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_CONNECTION"))
 	if err != nil {
 		fmt.Printf("Failed to connect to RabbitMQ: %s", err)
 		return nil, err
