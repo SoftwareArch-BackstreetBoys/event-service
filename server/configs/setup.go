@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -17,6 +18,10 @@ func ConnectDB() *mongo.Client {
 	defer cancel() // Ensure cancel is called to avoid context leak
 
 	// Connect to MongoDB using the mongo.Connect method
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file in server/setup/connectDB")
+	}
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGOURI")))
 	if err != nil {
 		log.Fatal(err)

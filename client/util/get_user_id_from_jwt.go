@@ -2,10 +2,12 @@ package util
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/joho/godotenv"
 )
 
 type UserClaims struct {
@@ -17,10 +19,10 @@ type UserClaims struct {
 var JWT_SECRET string
 
 func init() {
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading .env file")
-	// }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file in util/get_user_id_from_jwt")
+	}
 
 	JWT_SECRET = os.Getenv("JWT_SECRET")
 }

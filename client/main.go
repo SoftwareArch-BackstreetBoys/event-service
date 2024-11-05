@@ -11,6 +11,7 @@ import (
 	"client/services"
 	"client/util"
 
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -22,6 +23,10 @@ type App struct {
 
 // CORS middleware to handle CORS requests with specific origin and credentials support
 func corsMiddleware(next http.Handler) http.Handler {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file in client/main/corsMiddleware")
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Specify the allowed origin
 		allowedOrigin := os.Getenv("FRONTEND_ROUTE")
@@ -258,6 +263,10 @@ func (app *App) searchEventsHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Create a gRPC connection
 	creds := insecure.NewCredentials()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file in client/main/main")
+	}
 	cc, err := grpc.Dial(os.Getenv("GRPC_SERVER_PORT"), grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("Failed to dial gRPC server: %v", err)

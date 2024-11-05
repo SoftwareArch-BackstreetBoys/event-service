@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 // ResponseBody represents the JSON structure
@@ -23,6 +26,10 @@ func GetUserEmailById(userId string) (string, error) {
 
 	fmt.Println(userId)
 	// Make a GET request to the URL
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file in util/get_user_email")
+	}
 	resp, err := http.Get(os.Getenv("USER_SERVICE_URL") + "/users/" + userId)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch URL: %v", err)
