@@ -258,6 +258,7 @@ func sendEmailToUserIDs(userIDs []string) error {
 		email, err := util.GetUserEmailById(userID)
 		if err != nil {
 			fmt.Println(err)
+			continue
 		}
 
 		// After successfully updating the event, send a notification
@@ -273,7 +274,6 @@ func sendEmailToUserIDs(userIDs []string) error {
 		err = queue.SendMessage(&notification)
 		if err != nil {
 			log.Println("Failed to publish message to RabbitMQ:", err)
-			return err
 		}
 	}
 
