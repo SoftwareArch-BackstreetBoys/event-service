@@ -23,7 +23,6 @@ type ResponseBody struct {
 }
 
 func GetUserEmailById(userId string) (string, error) {
-
 	fmt.Println(userId)
 	// Make a GET request to the URL
 	err := godotenv.Load()
@@ -35,6 +34,10 @@ func GetUserEmailById(userId string) (string, error) {
 		return "", fmt.Errorf("failed to fetch URL: %v", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("response status code is not ok. receive: %d", resp.StatusCode)
+	}
 
 	// Read the response body
 	body, err := ioutil.ReadAll(resp.Body)
