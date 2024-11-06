@@ -2,14 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"client/services"
-	"client/util"
 
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
@@ -206,7 +204,7 @@ func (app *App) joinEventHandler(w http.ResponseWriter, r *http.Request) {
 	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
 	// 	return
 	// }
-	fmt.Println("Join req: ", req.EventId, req.UserId)
+	// fmt.Println("Join req: ", req.EventId, req.UserId)
 	res, err := app.eventService.JoinEvent(req.EventId, req.UserId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -228,13 +226,13 @@ func (app *App) leaveEventHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 	req.EventId = eventID
 
-	userID, err := util.GetUserIdFromRequestObject(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// userID, err := util.GetUserIdFromRequestObject(r)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	res, err := app.eventService.LeaveEvent(req.EventId, userID)
+	res, err := app.eventService.LeaveEvent(req.EventId, req.UserId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
