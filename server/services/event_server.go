@@ -319,13 +319,40 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 		fmt.Println(err)
 	}
 
-	// After successfully updating the event, send a notification
+	//After successfully updating the event, send a notification
+
+	const layout = "2006-01-02 15:04:05"
+
+	eventTime, err := time.Parse(time.RFC3339, req.Datetime)
+	if err != nil {
+			fmt.Println("Error parsing date:", err)
+	}
+
+	formattedDatetime := eventTime.Format(layout)
+	formattedUpdatedAt := time.Now().Format(layout)
+
+	bodyMessage := fmt.Sprintf(
+		"The event `%s` details have been updated:\n\n"+
+				"Description: %s\n"+
+				"Date & Time: %s\n"+
+				"Location: %s\n"+
+				"Max Participation: %d\n"+
+				"Updated At: %s\n",
+		req.Title,
+		req.Description,
+		formattedDatetime,
+		req.Location,
+		req.MaxParticipation,
+		formattedUpdatedAt,
+)
+	subject := fmt.Sprintf("%s Event Has Been Updated", req.Title)
+
 	notification := models.NotificationMessage{
 		NotificationType: "event_update",
 		Sender:           "soeisoftarch@gmail.com",
 		Receiver:         email,
-		Subject:          "Event Update",
-		BodyMessage:      "The event details have been updated.",
+		Subject:          subject,
+		BodyMessage:      bodyMessage,
 		Status:           "pending",
 	}
 
@@ -397,12 +424,25 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 	}
 
 	// After successfully deleting the event, send a notification
+
+	const layout = "2006-01-02 15:04:05"
+
+	formattedDeletedAt := time.Now().Format(layout)
+
+	bodyMessage := fmt.Sprintf(
+		"The event `%s` have been deleted:\n\n"+
+				"Deleted At: %s\n",
+		event.Title,
+		formattedDeletedAt,
+)
+	subject := fmt.Sprintf("%s Event No Longer Available", event.Title)
+
 	notification := models.NotificationMessage{
 		NotificationType: "event_delete",
 		Sender:           "soeisoftarch@gmail.com",
 		Receiver:         email,
-		Subject:          "Event Delete",
-		BodyMessage:      "The event details have been deleted.",
+		Subject:          subject,
+		BodyMessage:      bodyMessage,
 		Status:           "pending",
 	}
 
@@ -534,12 +574,25 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 	}
 
 	// After successfully joining the event, send a notification
+
+	const layout = "2006-01-02 15:04:05"
+
+	formattedJoinAt := time.Now().Format(layout)
+
+	bodyMessage := fmt.Sprintf(
+		"Someone join the `%s` event:\n\n"+
+				"Join At: %s\n",
+		event.Title,
+		formattedJoinAt,
+)
+	subject := fmt.Sprintf("Welcome! A New Member Has Joined %s Event", event.Title)
+
 	notification := models.NotificationMessage{
 		NotificationType: "event_join",
 		Sender:           "soeisoftarch@gmail.com",
 		Receiver:         email,
-		Subject:          "Event Join",
-		BodyMessage:      "Someone join this event.",
+		Subject:          subject,
+		BodyMessage:      bodyMessage,
 		Status:           "pending",
 	}
 
@@ -593,12 +646,25 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 	}
 
 	// After successfully leaving the event, send a notification
+
+	const layout = "2006-01-02 15:04:05"
+
+	formattedLeaveAt := time.Now().Format(layout)
+
+	bodyMessage := fmt.Sprintf(
+		"Someone has left the `%s` event:\n\n"+
+				"Leave At: %s\n",
+		event.Title,
+		formattedLeaveAt,
+)
+	subject := fmt.Sprintf("A Member Has Exited the %s Event", event.Title)
+
 	notification := models.NotificationMessage{
 		NotificationType: "event_leave",
 		Sender:           "soeisoftarch@gmail.com",
 		Receiver:         email,
-		Subject:          "Event Leave",
-		BodyMessage:      "Someone leave this event.",
+		Subject:          subject,
+		BodyMessage:      bodyMessage,
 		Status:           "pending",
 	}
 
