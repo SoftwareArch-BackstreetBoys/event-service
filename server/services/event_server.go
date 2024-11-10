@@ -143,7 +143,7 @@ func (s eventServiceServer) GetEvent(ctx context.Context, req *GetEventRequest) 
 // GetAllEventsByUser retrieves all events created by a specific user
 func (eventServiceServer) GetAllEventsByUser(ctx context.Context, req *GetAllEventsByUserRequest) (*GetAllEventsByUserResponse, error) {
 	// Define filter to find events created by the specified user
-	filter := bson.M{"created_by": req.UserId}
+	filter := bson.M{"created_by_id": req.UserId}
 
 	// Define sorting options to sort by created_at in descending order
 	findOptions := options.Find().SetSort(bson.M{"created_at": -1})

@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 
+	"client/model"
 	"client/services"
 
 	"github.com/joho/godotenv"
@@ -58,14 +60,38 @@ func (app *App) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAllEventsHandler handles fetching all events
-func (app *App) getAllEventsHandler(w http.ResponseWriter, _ *http.Request) {
+func (app *App) getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
+	var req model.GetAllEventsRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
 	res, err := app.eventService.GetAllEvents()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	publicEvents := make([]*services.Event, 0)
+	for _, event := range res.Events {
+		if event.ClubId == "" {
+			publicEvents = append(publicEvents, event)
+		}
+	}
+
+	joinedClubEvents := make([]*services.Event, 0)
+	for _, event := range res.Events {
+		if slices.Contains(req.ClubIDs, event.ClubId) {
+			joinedClubEvents = append(joinedClubEvents, event)
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(res) // Return the response to the frontend
+	json.NewEncoder(w).Encode(model.GetAllEventsResponse{
+		PublicEvents:     publicEvents,
+		JoinedClubEvents: joinedClubEvents,
+	}) // Return the response to the frontend
 }
 
 // CreateEventHandler handles the creation of a new event
@@ -265,6 +291,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file in client/main/main")
 	}
+
 	cc, err := grpc.Dial(os.Getenv("GRPC_SERVER_PORT"), grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("Failed to dial gRPC server: %v", err)
