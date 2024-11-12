@@ -264,7 +264,7 @@ func sendEmailToUserIDs(userIDs []string, notiType string, subject string, bodyM
 		notification := models.NotificationMessage{
 			NotificationType: notiType,
 			Sender:           "soeisoftarch@gmail.com",
-			Receiver:         userInfo.FullName,
+			Receiver:         userInfo.Email,
 			Subject:          subject,
 			BodyMessage:      bodyMessage,
 			Status:           "pending",
@@ -517,9 +517,6 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, nil // Event is full
 	}
 
-	// fetch all participatorUserIDs before insert new user for send email
-	participatorsUserIDs, errFetchParticipator := getEventParticipatorUserIDsByEventId(ctx, event.Id)
-
 	// Check if the user is already participating
 	var participation models.MongoEventParticipation
 	err = eventParticipationCollection.FindOne(ctx, bson.M{"event_id": eventID, "user_id": userID}).Decode(&participation)
@@ -568,13 +565,9 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 	subject := fmt.Sprintf("Welcome %s! A New Member Has Joined %s Event", joinedUserInfo.FullName, event.Title)
 
 
-	if errFetchParticipator == nil {
-		errSendEmail := sendEmailToUserIDs(participatorsUserIDs, "event_join", subject, bodyMessage)
-		if errSendEmail != nil {
-			log.Println(errSendEmail)
-		}
-	} else {
-		log.Println("Failed to get participators ids", errFetchParticipator)
+	errSendEmail := sendEmailToUserIDs([]string{event.CreatedById}, "event_join", subject, bodyMessage)
+	if errSendEmail != nil {
+		log.Println(errSendEmail)
 	}
 
 	return &JoinEventResponse{Success: true}, nil
@@ -636,15 +629,9 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 )
 	subject := fmt.Sprintf("%s Has Exited the %s Event", leftUserInfo.FullName, event.Title)
 
-	// fetch all participatorUserIDs after remove user for send email
-	participatorsUserIDs, errFetchParticipator := getEventParticipatorUserIDsByEventId(ctx, event.Id)
-	if errFetchParticipator == nil {
-		errSendEmail := sendEmailToUserIDs(participatorsUserIDs, "event_leave", subject, bodyMessage)
+	errSendEmail := sendEmailToUserIDs([]string{event.CreatedById}, "event_leave", subject, bodyMessage)
 		if errSendEmail != nil {
 			log.Println(errSendEmail)
-		}
-	} else {
-		log.Println("Failed to get participators ids", errFetchParticipator)
 	}
 
 	return &LeaveEventResponse{Success: true}, nil
