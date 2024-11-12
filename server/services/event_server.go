@@ -322,13 +322,23 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 
 	const layout = "2006-01-02 15:04:05"
 
-	eventTime, err := time.Parse(time.RFC3339, req.Datetime)
-	if err != nil {
-			fmt.Println("Error parsing date:", err)
-	}
+// Load Thailand location
+location, err := time.LoadLocation("Asia/Bangkok")
+if err != nil {
+    fmt.Println("Error loading location:", err)
+}
 
-	formattedDatetime := eventTime.Format(layout)
-	formattedUpdatedAt := time.Now().Format(layout)
+// Parse `req.Datetime` into event time
+eventTime, err := time.Parse(time.RFC3339, req.Datetime)
+if err != nil {
+    fmt.Println("Error parsing date:", err)
+}
+
+// Convert `eventTime` to Thailand time and format it
+formattedDatetime := eventTime.In(location).Format(layout)
+
+// Format the current time in Thailand time
+formattedUpdatedAt := time.Now().In(location).Format(layout)
 
 	bodyMessage := fmt.Sprintf(
 		"The event `%s` details have been updated:\n\n"+
@@ -344,7 +354,7 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 		req.Location,
 		req.MaxParticipation,
 		formattedUpdatedAt,
-		updatedBy.Email,
+		updatedBy.FullName,
 	)
 	subject := fmt.Sprintf("%s Event Has Been Updated", req.Title)
 
@@ -415,17 +425,27 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 
 	// After successfully deleting the event, send a notification
 
-	const layout = "2006-01-02 15:04:05"
+	// Define the layout
+	layout := "2006-01-02 15:04:05"
 
-	formattedDeletedAt := time.Now().Format(layout)
+	// Load the Thailand location
+	location, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+    // Handle the error if loading the timezone fails
+    log.Fatalf("could not load location: %v", err)
+	}
 
+	// Format the current time in Thailand timezone
+	formattedDeletedAt := time.Now().In(location).Format(layout)
+
+	// Create the body message
 	bodyMessage := fmt.Sprintf(
-		"The event `%s` has been deleted:\n\n"+
-			"Deleted At: %s\n"+
-			"Deleted By: %s\n",
-		event.Title,
-		formattedDeletedAt,
-		deletedBy.FullName,
+    "The event `%s` has been deleted:\n\n"+
+        "Deleted At: %s\n"+
+        "Deleted By: %s\n",
+    event.Title,
+    formattedDeletedAt,
+    deletedBy.FullName,
 	)
 	subject := fmt.Sprintf("%s Event No Longer Available", event.Title)
 
@@ -552,7 +572,14 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 
 	const layout = "2006-01-02 15:04:05"
 
-	formattedJoinAt := time.Now().Format(layout)
+	// Load Thailand location
+	location, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+    fmt.Println("Error loading location:", err)
+	}
+
+	// Format the current time in Thailand timezone
+	formattedJoinAt := time.Now().In(location).Format(layout)
 
 	bodyMessage := fmt.Sprintf(
 		"Someone joined the `%s` event:\n\n"+
@@ -617,7 +644,14 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 
 	const layout = "2006-01-02 15:04:05"
 
-	formattedLeaveAt := time.Now().Format(layout)
+	// Load Thailand location
+	location, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+			fmt.Println("Error loading location:", err)
+	}
+
+	// Format the current time in Thailand timezone
+	formattedLeaveAt := time.Now().In(location).Format(layout)
 
 	bodyMessage := fmt.Sprintf(
 		"Someone has left the `%s` event:\n\n"+
