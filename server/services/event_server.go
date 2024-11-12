@@ -253,21 +253,20 @@ func getEventParticipatorUserIDsByEventId(ctx context.Context, eventID primitive
 	return userIDs, nil
 }
 
-func sendEmailToUserIDs(userIDs []string) error {
+func sendEmailToUserIDs(userIDs []string, notiType string, subject string, bodyMessage string) error {
 	for _, userID := range userIDs {
-		email, err := util.GetUserEmailById(userID)
+		userInfo, err := util.GetUserInfoById(userID)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		// After successfully updating the event, send a notification
 		notification := models.NotificationMessage{
-			NotificationType: "event_update",
+			NotificationType: notiType,
 			Sender:           "soeisoftarch@gmail.com",
-			Receiver:         email,
-			Subject:          "Event Update",
-			BodyMessage:      "The event details have been updated.",
+			Receiver:         userInfo.FullName,
+			Subject:          subject,
+			BodyMessage:      bodyMessage,
 			Status:           "pending",
 		}
 
@@ -314,12 +313,12 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 		return nil, err
 	}
 
-	email, err := util.GetUserEmailById(updatedEvent.CreatedById)
+	//After successfully updating the event, send a notification
+
+	updatedBy, err := util.GetUserInfoById(updatedEvent.CreatedById)
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	//After successfully updating the event, send a notification
 
 	const layout = "2006-01-02 15:04:05"
 
@@ -333,39 +332,27 @@ func (eventServiceServer) UpdateEvent(ctx context.Context, req *UpdateEventReque
 
 	bodyMessage := fmt.Sprintf(
 		"The event `%s` details have been updated:\n\n"+
-				"Description: %s\n"+
-				"Date & Time: %s\n"+
-				"Location: %s\n"+
-				"Max Participation: %d\n"+
-				"Updated At: %s\n",
+			"Description: %s\n"+
+			"Date & Time: %s\n"+
+			"Location: %s\n"+
+			"Max Participation: %d\n"+
+			"Updated At: %s\n"+
+			"Updated By: %s\n",
 		req.Title,
 		req.Description,
 		formattedDatetime,
 		req.Location,
 		req.MaxParticipation,
 		formattedUpdatedAt,
-)
+		updatedBy.Email,
+	)
 	subject := fmt.Sprintf("%s Event Has Been Updated", req.Title)
 
-	notification := models.NotificationMessage{
-		NotificationType: "event_update",
-		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         email,
-		Subject:          subject,
-		BodyMessage:      bodyMessage,
-		Status:           "pending",
-	}
-
-	err = queue.SendMessage(&notification)
-	if err != nil {
-		log.Println("Failed to publish message to RabbitMQ:", err)
-		// Handle error if needed
-	}
-
+	// Send email to all participant
 	participatorsUserIDs, err := getEventParticipatorUserIDsByEventId(ctx, updatedEvent.Id)
 
 	if err == nil {
-		err = sendEmailToUserIDs(participatorsUserIDs)
+		err = sendEmailToUserIDs(participatorsUserIDs, "event_update", subject, bodyMessage)
 		if err != nil {
 			log.Println(err)
 		}
@@ -406,6 +393,9 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		return nil, err
 	}
 
+	// fetch all participatorsUserIDs before delete event for send email
+	participatorsUserIDs, errFetchParticipator := getEventParticipatorUserIDsByEventId(ctx, event.Id)
+
 	// Delete the event from the MongoDB collection
 	_, err = eventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
 	if err != nil {
@@ -418,7 +408,7 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 		return &DeleteEventResponse{Success: false}, err
 	}
 
-	email, err := util.GetUserEmailById(event.CreatedById)
+	deletedBy, err := util.GetUserInfoById(event.CreatedById)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -430,37 +420,22 @@ func (eventServiceServer) DeleteEvent(ctx context.Context, req *DeleteEventReque
 	formattedDeletedAt := time.Now().Format(layout)
 
 	bodyMessage := fmt.Sprintf(
-		"The event `%s` have been deleted:\n\n"+
-				"Deleted At: %s\n",
+		"The event `%s` has been deleted:\n\n"+
+			"Deleted At: %s\n"+
+			"Deleted By: %s\n",
 		event.Title,
 		formattedDeletedAt,
-)
+		deletedBy.FullName,
+	)
 	subject := fmt.Sprintf("%s Event No Longer Available", event.Title)
 
-	notification := models.NotificationMessage{
-		NotificationType: "event_delete",
-		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         email,
-		Subject:          subject,
-		BodyMessage:      bodyMessage,
-		Status:           "pending",
-	}
-
-	err = queue.SendMessage(&notification)
-	if err != nil {
-		log.Println("Failed to publish message to RabbitMQ:", err)
-		// Handle error if needed
-	}
-
-	participatorsUserIDs, err := getEventParticipatorUserIDsByEventId(ctx, event.Id)
-
-	if err == nil {
-		err = sendEmailToUserIDs(participatorsUserIDs)
-		if err != nil {
-			log.Println(err)
+	if errFetchParticipator == nil {
+		errSendEmail := sendEmailToUserIDs(participatorsUserIDs, "event_delete", subject, bodyMessage)
+		if errSendEmail != nil {
+			log.Println(errSendEmail)
 		}
 	} else {
-		log.Println("Failed to get participators ids", err)
+		log.Println("Failed to get participators ids", errFetchParticipator)
 	}
 
 	return &DeleteEventResponse{Success: true}, nil
@@ -542,6 +517,9 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, nil // Event is full
 	}
 
+	// fetch all participatorUserIDs before insert new user for send email
+	participatorsUserIDs, errFetchParticipator := getEventParticipatorUserIDsByEventId(ctx, event.Id)
+
 	// Check if the user is already participating
 	var participation models.MongoEventParticipation
 	err = eventParticipationCollection.FindOne(ctx, bson.M{"event_id": eventID, "user_id": userID}).Decode(&participation)
@@ -568,38 +546,35 @@ func (eventServiceServer) JoinEvent(ctx context.Context, req *JoinEventRequest) 
 		return &JoinEventResponse{Success: false}, err
 	}
 
-	email, err := util.GetUserEmailById(event.CreatedById)
+
+	// After successfully joining the event, send a notification
+	joinedUserInfo, err := util.GetUserInfoById(userID)
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	// After successfully joining the event, send a notification
 
 	const layout = "2006-01-02 15:04:05"
 
 	formattedJoinAt := time.Now().Format(layout)
 
 	bodyMessage := fmt.Sprintf(
-		"Someone join the `%s` event:\n\n"+
-				"Join At: %s\n",
+		"Someone joined the `%s` event:\n\n"+
+		"Join At: %s\n"+
+		"New Participant: %s\n",
 		event.Title,
 		formattedJoinAt,
-)
-	subject := fmt.Sprintf("Welcome! A New Member Has Joined %s Event", event.Title)
+		joinedUserInfo.FullName,
+	)
+	subject := fmt.Sprintf("Welcome %s! A New Member Has Joined %s Event", joinedUserInfo.FullName, event.Title)
 
-	notification := models.NotificationMessage{
-		NotificationType: "event_join",
-		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         email,
-		Subject:          subject,
-		BodyMessage:      bodyMessage,
-		Status:           "pending",
-	}
 
-	err = queue.SendMessage(&notification)
-	if err != nil {
-		log.Println("Failed to publish message to RabbitMQ:", err)
-		// Handle error if needed
+	if errFetchParticipator == nil {
+		errSendEmail := sendEmailToUserIDs(participatorsUserIDs, "event_join", subject, bodyMessage)
+		if errSendEmail != nil {
+			log.Println(errSendEmail)
+		}
+	} else {
+		log.Println("Failed to get participators ids", errFetchParticipator)
 	}
 
 	return &JoinEventResponse{Success: true}, nil
@@ -640,12 +615,12 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 		return &LeaveEventResponse{Success: false}, err
 	}
 
-	email, err := util.GetUserEmailById(event.CreatedById)
+	// After successfully leaving the event, send a notification
+
+	leftUserInfo, err := util.GetUserInfoById(userID)
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	// After successfully leaving the event, send a notification
 
 	const layout = "2006-01-02 15:04:05"
 
@@ -653,25 +628,23 @@ func (eventServiceServer) LeaveEvent(ctx context.Context, req *LeaveEventRequest
 
 	bodyMessage := fmt.Sprintf(
 		"Someone has left the `%s` event:\n\n"+
-				"Leave At: %s\n",
+				"Leave At: %s\n"+
+				"Left By: %s\n",
 		event.Title,
 		formattedLeaveAt,
+		leftUserInfo.FullName,
 )
-	subject := fmt.Sprintf("A Member Has Exited the %s Event", event.Title)
+	subject := fmt.Sprintf("%s Has Exited the %s Event", leftUserInfo.FullName, event.Title)
 
-	notification := models.NotificationMessage{
-		NotificationType: "event_leave",
-		Sender:           "soeisoftarch@gmail.com",
-		Receiver:         email,
-		Subject:          subject,
-		BodyMessage:      bodyMessage,
-		Status:           "pending",
-	}
-
-	err = queue.SendMessage(&notification)
-	if err != nil {
-		log.Println("Failed to publish message to RabbitMQ:", err)
-		// Handle error if needed
+	// fetch all participatorUserIDs after remove user for send email
+	participatorsUserIDs, errFetchParticipator := getEventParticipatorUserIDsByEventId(ctx, event.Id)
+	if errFetchParticipator == nil {
+		errSendEmail := sendEmailToUserIDs(participatorsUserIDs, "event_leave", subject, bodyMessage)
+		if errSendEmail != nil {
+			log.Println(errSendEmail)
+		}
+	} else {
+		log.Println("Failed to get participators ids", errFetchParticipator)
 	}
 
 	return &LeaveEventResponse{Success: true}, nil
